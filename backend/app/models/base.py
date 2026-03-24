@@ -3,6 +3,7 @@ from app.models.user import User
 from app.models.product import Product, Category
 from app.models.finance import CashRegister, CashTransaction, Withdrawal
 from app.models.parcel import Parcel, ParcelItem
+from app.models.sale import Sale, SaleItem
 from sqlalchemy import String, DateTime, ForeignKey, Integer, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
