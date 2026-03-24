@@ -4,18 +4,22 @@ from sqlalchemy.orm import selectinload
 from app.models.parcel import Parcel, ParcelItem, ParcelStatus
 from app.schemas.parcel import ParcelCreate, ParcelUpdate
 from app.services.stock_service import StockService
+from app.services.finance_service import FinanceService
 from app.schemas.stock import StockAdjustment
+from app.core.errors import ErrorCode
+from app.routes.deps import raise_http_exception
+from app.models.user import User as UserModel # Type hinting
+from app.models.product import Product # For type hinting
+from app.models.user import User # For type hinting
+from fastapi import HTTPException, status
 from typing import List, Optional
-from datetime import datetime
 
 class ParcelService:
     @staticmethod
     async def create(db: AsyncSession, obj_in: ParcelCreate, user_id: int) -> Parcel:
-        # 1. Calculate total amount
         total_items_amount = sum(item.quantity * item.price_at_sale for item in obj_in.items)
         total_amount = total_items_amount + obj_in.shipping_fee
         
-        # 2. Create Parcel
         db_obj = Parcel(
             client_name=obj_in.client_name,
             client_phone=obj_in.client_phone,
@@ -26,9 +30,8 @@ class ParcelService:
             user_id=user_id
         )
         db.add(db_obj)
-        await db.flush() # Get ID
+        await db.flush()
         
-        # 3. Create Items and Adjust Stock
         for item_in in obj_in.items:
             item = ParcelItem(
                 parcel_id=db_obj.id,
@@ -38,7 +41,6 @@ class ParcelService:
             )
             db.add(item)
             
-            # Reduce stock
             adj = StockAdjustment(
                 product_id=item_in.product_id,
                 change_amount=-item_in.quantity,
@@ -49,7 +51,6 @@ class ParcelService:
         await db.commit()
         await db.refresh(db_obj)
         
-        # Reload with items
         return await ParcelService.get(db, db_obj.id)
 
     @staticmethod
@@ -59,7 +60,10 @@ class ParcelService:
             .options(selectinload(Parcel.items))
             .where(Parcel.id == id)
         )
-        return result.scalar_one_or_none()
+        parcel = result.scalar_one_or_none()
+        if not parcel:
+            raise_http_exception(status.HTTP_404_NOT_FOUND, ErrorCode.PARCEL_NOT_FOUND)
+        return parcel
 
     @staticmethod
     async def get_all(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Parcel]:
@@ -76,14 +80,12 @@ class ParcelService:
     async def update_status(db: AsyncSession, id: int, status: ParcelStatus, user_id: int) -> Optional[Parcel]:
         parcel = await ParcelService.get(db, id)
         if not parcel:
-            return None
+            raise_http_exception(status.HTTP_404_NOT_FOUND, ErrorCode.PARCEL_NOT_FOUND)
             
         old_status = parcel.status
         parcel.status = status
         
-        # Logic for returns (Requirement #2 & #8)
         if status == ParcelStatus.RETURNED and old_status != ParcelStatus.RETURNED:
-            # Restore stock
             for item in parcel.items:
                 adj = StockAdjustment(
                     product_id=item.product_id,
@@ -92,7 +94,6 @@ class ParcelService:
                 )
                 await StockService.adjust_stock(db, adj, user_id)
         
-        # Logic for delivered
         if status == ParcelStatus.DELIVERED:
             parcel.is_money_collected = True
             parcel.collected_amount = parcel.total_amount

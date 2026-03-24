@@ -13,7 +13,7 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(''); // Clear previous errors
     try {
       const formData = new URLSearchParams();
       formData.append('username', username);
@@ -24,9 +24,15 @@ const LoginPage = () => {
       });
       
       login(response.data.access_token);
-    } catch (err) {
-      setError(t('login.errorMessage'));
-      console.error(err);
+    } catch (err: any) {
+      if (err.response && err.response.data && err.response.data.code) {
+        // Use the error code from the backend for translation
+        setError(t(`errors.${err.response.data.code}`));
+      } else {
+        // Fallback for unexpected errors
+        setError(t('errors.genericError'));
+      }
+      console.error("Login error:", err);
     }
   };
 

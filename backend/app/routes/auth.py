@@ -1,12 +1,13 @@
 from datetime import timedelta
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import create_access_token
-from app.routes.deps import get_db
+from app.core.errors import ErrorCode
+from app.routes.deps import get_db, raise_http_exception
 from app.schemas.user import Token
 from app.services.user_service import UserService
 
@@ -24,15 +25,9 @@ async def login_access_token(
         db, username=form_data.username, password=form_data.password
     )
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect username or password"
-        )
+        raise_http_exception(status.HTTP_400_BAD_REQUEST, ErrorCode.AUTH_INVALID_CREDENTIALS)
     elif not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
-        )
+        raise_http_exception(status.HTTP_400_BAD_REQUEST, ErrorCode.AUTH_INACTIVE_USER)
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {

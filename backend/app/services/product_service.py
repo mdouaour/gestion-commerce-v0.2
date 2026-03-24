@@ -3,11 +3,21 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductUpdate
+from app.services.stock_service import StockService
+from app.schemas.stock import StockAdjustment
+from app.core.errors import ErrorCode
+from app.routes.deps import raise_http_exception
+from app.models.user import User # For type hinting
+from fastapi import HTTPException, status
 from typing import List, Optional
 
 class ProductService:
     @staticmethod
     async def create(db: AsyncSession, obj_in: ProductCreate) -> Product:
+        product = await ProductService.get_by_sku(db, sku=obj_in.sku)
+        if product:
+            raise_http_exception(status.HTTP_400_BAD_REQUEST, ErrorCode.SKU_ALREADY_EXISTS, "SKU already exists")
+        
         db_obj = Product(
             name=obj_in.name,
             sku=obj_in.sku,
@@ -28,7 +38,10 @@ class ProductService:
             .options(selectinload(Product.category))
             .where(Product.id == id)
         )
-        return result.scalar_one_or_none()
+        product = result.scalar_one_or_none()
+        if not product:
+            raise_http_exception(status.HTTP_404_NOT_FOUND, ErrorCode.PRODUCT_NOT_FOUND)
+        return product
 
     @staticmethod
     async def get_by_sku(db: AsyncSession, sku: str) -> Optional[Product]:
@@ -46,8 +59,7 @@ class ProductService:
         for field, value in update_data.items():
             setattr(db_obj, field, value)
         
-        # Increment version for optimistic locking
-        db_obj.version += 1
+        db_obj.version += 1 # Optimistic locking
         
         await db.commit()
         await db.refresh(db_obj)
@@ -55,9 +67,9 @@ class ProductService:
 
     @staticmethod
     async def delete(db: AsyncSession, id: int) -> bool:
-        db_obj = await ProductService.get(db, id)
+        db_obj = await ProductService.get(db, id=id)
         if not db_obj:
-            return False
+            raise_http_exception(status.HTTP_404_NOT_FOUND, ErrorCode.PRODUCT_NOT_FOUND)
         await db.delete(db_obj)
         await db.commit()
         return True

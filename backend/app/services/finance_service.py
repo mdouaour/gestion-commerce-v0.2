@@ -2,8 +2,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.finance import CashRegister, CashTransaction, Withdrawal, TransactionType
 from app.schemas.finance import CashTransactionCreate, WithdrawalCreate
-from typing import Optional, List
-from datetime import datetime
+from app.services.finance_service import FinanceService # Import self for method calls
+from app.services.stock_service import StockService # Not used here directly, but good to have in context
+from app.core.errors import ErrorCode
+from app.routes.deps import raise_http_exception
+from app.models.user import User # For type hinting
+from fastapi import HTTPException, status
+from typing import List, Optional
 
 class FinanceService:
     @staticmethod
@@ -29,7 +34,6 @@ class FinanceService:
     ) -> CashTransaction:
         register = await FinanceService.get_or_create_register(db)
         
-        # Update balance
         register.current_balance += amount
         
         transaction = CashTransaction(
@@ -54,12 +58,10 @@ class FinanceService:
         register = await FinanceService.get_or_create_register(db)
         
         if register.current_balance < obj_in.amount:
-            raise ValueError("Insufficient funds in cash register")
+            raise_http_exception(status.HTTP_400_BAD_REQUEST, ErrorCode.INSUFFICIENT_FUNDS, "Insufficient funds in cash register")
             
-        # 1. Update Register balance
         register.current_balance -= obj_in.amount
         
-        # 2. Log as CashTransaction
         transaction = CashTransaction(
             register_id=register.id,
             amount=-obj_in.amount,
@@ -68,7 +70,6 @@ class FinanceService:
             user_id=admin_id
         )
         
-        # 3. Create Withdrawal record
         withdrawal = Withdrawal(
             amount=obj_in.amount,
             reason=obj_in.reason,

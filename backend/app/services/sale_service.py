@@ -8,42 +8,34 @@ from app.schemas.sale import SaleCreate
 from app.services.stock_service import StockService
 from app.services.finance_service import FinanceService
 from app.schemas.stock import StockAdjustment
+from app.core.errors import ErrorCode
+from app.routes.deps import raise_http_exception
+from app.models.finance import CashTransaction
+from fastapi import HTTPException, status
 from typing import List, Optional
-from fastapi import HTTPException
 
 class SaleService:
     @staticmethod
     async def create_sale(db: AsyncSession, obj_in: SaleCreate, user_id: int) -> Sale:
         total_amount = 0.0
         
-        # 1. Start Sale object
         db_sale = Sale(user_id=user_id, total_amount=0.0)
         db.add(db_sale)
-        await db.flush() # Get ID
+        await db.flush()
         
-        # 2. Process items with Optimistic Locking check
         for item_in in obj_in.items:
-            # Fetch product and verify version
             result = await db.execute(select(Product).where(Product.id == item_in.product_id))
             product = result.scalar_one_or_none()
             
             if not product:
-                raise HTTPException(status_code=404, detail=f"Product {item_in.product_id} not found")
+                raise_http_exception(status.HTTP_404_NOT_FOUND, ErrorCode.PRODUCT_NOT_FOUND, f"Product {item_in.product_id} not found")
             
-            # REQUIREMENT #6: Optimistic Locking
             if product.version != item_in.version:
-                raise HTTPException(
-                    status_code=409, 
-                    detail=f"Product '{product.name}' was modified by another transaction. Please refresh."
-                )
+                raise_http_exception(status.HTTP_409_CONFLICT, ErrorCode.OPTIMISTIC_LOCK_CONFLICT, f"Product '{product.name}' was modified by another transaction. Please refresh.")
             
             if product.stock_quantity < item_in.quantity:
-                raise HTTPException(
-                    status_code=400, 
-                    detail=f"Insufficient stock for '{product.name}'"
-                )
+                raise_http_exception(status.HTTP_400_BAD_REQUEST, ErrorCode.INSUFFICIENT_STOCK, f"Insufficient stock for '{product.name}'")
             
-            # Create SaleItem
             item = SaleItem(
                 sale_id=db_sale.id,
                 product_id=product.id,
@@ -54,7 +46,6 @@ class SaleService:
             
             total_amount += item_in.quantity * item_in.price_at_sale
             
-            # Update Stock (Service already increments version)
             adj = StockAdjustment(
                 product_id=product.id,
                 change_amount=-item_in.quantity,
@@ -62,10 +53,8 @@ class SaleService:
             )
             await StockService.adjust_stock(db, adj, user_id)
             
-        # 3. Finalize Sale Total
         db_sale.total_amount = total_amount
         
-        # 4. Cash Register Transaction (REQUIREMENT #1)
         cash_tx = await FinanceService.add_transaction(
             db, 
             amount=total_amount, 
@@ -87,7 +76,10 @@ class SaleService:
             .options(selectinload(Sale.items))
             .where(Sale.id == id)
         )
-        return result.scalar_one_or_none()
+        sale = result.scalar_one_or_none()
+        if not sale:
+            raise_http_exception(status.HTTP_404_NOT_FOUND, ErrorCode.SALE_NOT_FOUND)
+        return sale
 
     @staticmethod
     async def get_all(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Sale]:
