@@ -5,6 +5,11 @@ import os
 import asyncio
 from httpx import AsyncClient
 from app.main import app
+from sqlalchemy import delete
+from app.models.finance import CashRegister, CashTransaction, Withdrawal
+from app.models.user import User
+from app.models.product import Product, Category
+from app.models.base import StockHistory
 
 # Use a test database
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_app.db"
@@ -27,6 +32,19 @@ async def setup_db():
         await conn.run_sync(Base.metadata.drop_all)
     if os.path.exists("./test_app.db"):
         os.remove("./test_app.db")
+
+@pytest.fixture(autouse=True)
+async def clean_db(db_session):
+    # This runs before every test to ensure isolation
+    yield
+    await db_session.execute(delete(CashTransaction))
+    await db_session.execute(delete(Withdrawal))
+    await db_session.execute(delete(CashRegister))
+    await db_session.execute(delete(StockHistory))
+    await db_session.execute(delete(Product))
+    await db_session.execute(delete(Category))
+    await db_session.execute(delete(User))
+    await db_session.commit()
 
 @pytest.fixture
 async def db_session():
