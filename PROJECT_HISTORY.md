@@ -5,6 +5,16 @@ Ce fichier suit les principales étapes de développement du système Gestion Co
 هذا الملف يتتبع خطوات التطوير الرئيسية لنظام Gestion Commerce.
 
 ---
+### Step 9.5: Internationalization (i18n) - Phase 6: Error Normalization
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Refactored backend services and API routes to return structured error codes (e.g., `AUTH_INVALID_CREDENTIALS`) instead of plain text messages. Updated frontend error handling (specifically in `LoginPage`) to map these codes to user-friendly, translatable messages using `react-i18next`. This ensures errors are displayed consistently in the user's selected language.
+- **🇫🇷 French:** Refonte des services backend et des routes d'API pour retourner des codes d'erreur structurés (ex: `AUTH_INVALID_CREDENTIALS`) au lieu de messages textuels bruts. Mise à jour de la gestion des erreurs côté frontend (spécifiquement dans `LoginPage`) pour mapper ces codes à des messages traduisibles et conviviaux via `react-i18next`. Cela garantit que les erreurs sont affichées de manière cohérente dans la langue sélectionnée par l'utilisateur.
+- **🇩🇿 Arabic:** إعادة هيكلة خدمات الواجهة الخلفية ومسارات API لإرجاع رموز أخطاء منظمة (مثل `AUTH_INVALID_CREDENTIALS`) بدلاً من رسائل نصية بسيطة. تم تحديث معالجة الأخطاء في الواجهة الأمامية (خاصة في `LoginPage`) لربط هذه الرموز برسائل سهلة الاستخدام وقابلة للترجمة باستخدام `react-i18next`. هذا يضمن عرض الأخطاء بشكل متسق بلغة المستخدم المحددة.
+
+---
+
 ### Step 9.5: Internationalization (i18n) - Phase 4 & 5
 
 **Date:** 2026-03-24
