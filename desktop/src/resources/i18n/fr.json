@@ -1,0 +1,89 @@
+{
+    "common": {
+        "loading": "Chargement..."
+    },
+    "login": {
+        "title": "Bienvenue",
+        "usernameLabel": "Nom d'utilisateur",
+        "passwordLabel": "Mot de passe",
+        "signInButton": "Se connecter",
+        "errorMessage": "Échec de la connexion. Veuillez vérifier vos identifiants."
+    },
+    "dashboard": {
+        "title": "Tableau de Bord",
+        "welcomeMessage": "Bienvenue, {{username}}!",
+        "roleInfo": "Votre rôle est : {{role}}",
+        "logoutButton": "Déconnexion",
+        "sales": "Ventes"
+    },
+    "errors": {
+        "AUTH_INVALID_CREDENTIALS": "Identifiants invalides.",
+        "AUTH_INACTIVE_USER": "Votre compte est inactif.",
+        "AUTH_FORBIDDEN": "Accès refusé. Privilèges insuffisants.",
+        "AUTH_USER_NOT_FOUND": "Utilisateur non trouvé.",
+        "PRODUCT_NOT_FOUND": "Produit non trouvé.",
+        "SKU_ALREADY_EXISTS": "Ce code SKU existe déjà.",
+        "SALE_NOT_FOUND": "Vente non trouvée.",
+        "PARCEL_NOT_FOUND": "Colis non trouvé.",
+        "CATEGORY_NOT_FOUND": "Catégorie non trouvée.",
+        "INSUFFICIENT_STOCK": "Stock insuffisant pour cet article.",
+        "INSUFFICIENT_FUNDS": "Fonds insuffisants dans la caisse.",
+        "OPTIMISTIC_LOCK_CONFLICT": "Une modification concurrente a été détectée. Veuillez rafraîchir les données.",
+        "BAD_REQUEST": "Requête invalide.",
+        "NOT_FOUND": "Ressource non trouvée.",
+        "INTERNAL_SERVER_ERROR": "Une erreur interne est survenue.",
+        "genericError": "Une erreur inattendue s'est produite. Veuillez réessayer."
+    },
+    "sales": {
+        "new_sale": "Nouvelle Vente",
+        "product_search": "Rechercher un produit...",
+        "barcode_label": "Code-barres",
+        "quantity": "Quantité",
+        "price": "Prix",
+        "total": "Total",
+        "checkout": "Encaisser",
+        "add_item": "Ajouter",
+        "empty_cart": "Le panier est vide",
+        "success_msg": "Vente effectuée avec succès!",
+        "tab_name": "Vente {{id}}"
+    },
+    "products": {
+        "title": "Gestion des Produits",
+        "add_new": "Nouveau Produit",
+        "name": "Nom du Produit",
+        "sku": "Code SKU",
+        "price": "Prix",
+        "stock": "Stock",
+        "category": "Catégorie",
+        "actions": "Actions",
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "edit": "Modifier",
+        "delete": "Supprimer"
+    },
+    "parcels": {
+        "title": "Gestion des Colis",
+        "add_new": "Nouveau Colis",
+        "client_name": "Nom du Client",
+        "phone": "Téléphone",
+        "address": "Adresse",
+        "status": "Statut",
+        "total": "Total",
+        "is_collected": "Collecté",
+        "collect_btn": "Encaisser",
+        "update_status": "Modifier Statut"
+    },
+    "finance": {
+        "title": "Gestion Financière",
+        "balance": "Solde Actuel",
+        "status": "État de la Caisse",
+        "open": "Ouvert",
+        "closed": "Fermé",
+        "open_btn": "Ouvrir la Caisse",
+        "close_btn": "Fermer la Caisse",
+        "withdrawal": "Retrait d'argent",
+        "amount": "Montant",
+        "reason": "Motif",
+        "history": "Historique des Transactions"
+    }
+}

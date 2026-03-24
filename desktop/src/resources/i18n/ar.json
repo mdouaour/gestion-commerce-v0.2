@@ -1,0 +1,89 @@
+{
+    "common": {
+        "loading": "جار التحميل..."
+    },
+    "login": {
+        "title": "مرحباً بعودتك",
+        "usernameLabel": "اسم المستخدم",
+        "passwordLabel": "كلمة المرور",
+        "signInButton": "تسجيل الدخول",
+        "errorMessage": "فشل تسجيل الدخول. يرجى التحقق من بيانات الاعتماد الخاصة بك."
+    },
+    "dashboard": {
+        "title": "لوحة التحكم",
+        "welcomeMessage": "مرحباً، {{username}}!",
+        "roleInfo": "دورك هو: {{role}}",
+        "logoutButton": "تسجيل الخروج",
+        "sales": "المبيعات"
+    },
+    "errors": {
+        "AUTH_INVALID_CREDENTIALS": "بيانات الاعتماد غير صحيحة.",
+        "AUTH_INACTIVE_USER": "حسابك غير نشط.",
+        "AUTH_FORBIDDEN": "الوصول مرفوض. صلاحيات غير كافية.",
+        "AUTH_USER_NOT_FOUND": "المستخدم غير موجود.",
+        "PRODUCT_NOT_FOUND": "المنتج غير موجود.",
+        "SKU_ALREADY_EXISTS": "رمز SKU هذا موجود بالفعل.",
+        "SALE_NOT_FOUND": "البيع غير موجود.",
+        "PARCEL_NOT_FOUND": "الطرد غير موجود.",
+        "CATEGORY_NOT_FOUND": "الفئة غير موجودة.",
+        "INSUFFICIENT_STOCK": "مخزون غير كافٍ لهذا العنصر.",
+        "INSUFFICIENT_FUNDS": "أموال غير كافية في الصندوق.",
+        "OPTIMISTIC_LOCK_CONFLICT": "تم تعديل البيانات بواسطة معاملة أخرى. يرجى تحديث.",
+        "BAD_REQUEST": "طلب غير صالح.",
+        "NOT_FOUND": "المورد غير موجود.",
+        "INTERNAL_SERVER_ERROR": "حدث خطأ داخلي.",
+        "genericError": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+    },
+    "sales": {
+        "new_sale": "بيع جديد",
+        "product_search": "بحث عن منتج...",
+        "barcode_label": "رمز الباركود",
+        "quantity": "الكمية",
+        "price": "السعر",
+        "total": "المجموع",
+        "checkout": "إتمام البيع",
+        "add_item": "إضافة",
+        "empty_cart": "السلة فارغة",
+        "success_msg": "تمت عملية البيع بنجاح!",
+        "tab_name": "بيع {{id}}"
+    },
+    "products": {
+        "title": "إدارة المنتجات",
+        "add_new": "منتج جديد",
+        "name": "اسم المنتج",
+        "sku": "رمز SKU",
+        "price": "السعر",
+        "stock": "المخزون",
+        "category": "الفئة",
+        "actions": "الإجراءات",
+        "save": "حفظ",
+        "cancel": "إلغاء",
+        "edit": "تعديل",
+        "delete": "حذف"
+    },
+    "parcels": {
+        "title": "إدارة الطرود",
+        "add_new": "طرد جديد",
+        "client_name": "اسم الزبون",
+        "phone": "الهاتف",
+        "address": "العنوان",
+        "status": "الحالة",
+        "total": "المجموع",
+        "is_collected": "تم التحصيل",
+        "collect_btn": "تحصيل المبلغ",
+        "update_status": "تحديث الحالة"
+    },
+    "finance": {
+        "title": "إدارة المالية",
+        "balance": "الرصيد الحالي",
+        "status": "حالة الصندوق",
+        "open": "مفتوح",
+        "closed": "مغلق",
+        "open_btn": "فتح الصندوق",
+        "close_btn": "إغلاق الصندوق",
+        "withdrawal": "سحب مبلغ",
+        "amount": "المبلغ",
+        "reason": "السبب",
+        "history": "سجل المعاملات المالية"
+    }
+}

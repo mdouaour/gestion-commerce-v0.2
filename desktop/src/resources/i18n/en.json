@@ -1,0 +1,71 @@
+{
+    "common": {
+        "loading": "Loading..."
+    },
+    "login": {
+        "title": "Welcome Back",
+        "usernameLabel": "Username",
+        "passwordLabel": "Password",
+        "signInButton": "Sign In",
+        "errorMessage": "Login failed. Please check your credentials."
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "welcomeMessage": "Welcome, {{username}}!",
+        "roleInfo": "Your role is: {{role}}",
+        "logoutButton": "Logout",
+        "sales": "Sales"
+    },
+    "sales": {
+        "new_sale": "New Sale",
+        "product_search": "Search product...",
+        "barcode_label": "Barcode",
+        "quantity": "Quantity",
+        "price": "Price",
+        "total": "Total",
+        "checkout": "Checkout",
+        "add_item": "Add",
+        "empty_cart": "Cart is empty",
+        "success_msg": "Sale completed successfully!",
+        "tab_name": "Sale {{id}}"
+    },
+    "products": {
+        "title": "Product Management",
+        "add_new": "New Product",
+        "name": "Product Name",
+        "sku": "SKU Code",
+        "price": "Price",
+        "stock": "Stock",
+        "category": "Category",
+        "actions": "Actions",
+        "save": "Save",
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "delete": "Delete"
+    },
+    "parcels": {
+        "title": "Parcel Management",
+        "add_new": "New Parcel",
+        "client_name": "Client Name",
+        "phone": "Phone",
+        "address": "Address",
+        "status": "Status",
+        "total": "Total",
+        "is_collected": "Collected",
+        "collect_btn": "Collect Money",
+        "update_status": "Update Status"
+    },
+    "finance": {
+        "title": "Finance Management",
+        "balance": "Current Balance",
+        "status": "Register Status",
+        "open": "Open",
+        "closed": "Closed",
+        "open_btn": "Open Register",
+        "close_btn": "Close Register",
+        "withdrawal": "Withdraw Funds",
+        "amount": "Amount",
+        "reason": "Reason",
+        "history": "Financial Transaction History"
+    }
+}

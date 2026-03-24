@@ -1,0 +1,8 @@
+PyQt6
+pandas
+python-barcode
+matplotlib
+pytest
+pytest-qt
+argon2-cffi
+python-dotenv

@@ -1,3 +1,75 @@
+
+---
+### Step 10: Desktop POS Transformation - Phase 5 (Finance Management)
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Implemented the Finance Management module featuring real-time cash balance tracking, register open/close workflows, and withdrawal management with audit trails. Integrated a detailed financial transaction history table. The UI is fully localized and supports RTL layout for Arabic.
+- **🇫🇷 French:** Implémentation du module de gestion financière avec suivi du solde de caisse en temps réel, flux d'ouverture/fermeture de caisse et gestion des retraits avec pistes d'audit. Intégration d'un tableau détaillé de l'historique des transactions financières. L'interface est entièrement localisée et supporte la mise en page RTL pour l'arabe.
+- **🇩🇿 Arabic:** تم تنفيذ وحدة إدارة المالية التي تتميز بتتبع الرصيد النقدي في الوقت الفعلي، وسير عمل فتح/إغلاق الصندوق، وإدارة السحوبات مع سجلات التدقيق. تم دمج جدول مفصل لتاريخ المعاملات المالية. الواجهة معربة بالكامل وتدعم تخطيط RTL للغة العربية.
+
+---
+### Step 10: Desktop POS Transformation - Phase 5 (Parcel Management)
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Implemented the Parcel Management module with real-time status tracking and financial collection integration. Users can now monitor delivery progress and record collected amounts directly from the dashboard. The interface is fully localized and supports dynamic layout mirroring for Arabic.
+- **🇫🇷 French:** Implémentation du module de gestion des colis avec suivi du statut en temps réel et intégration de la collecte financière. Les utilisateurs peuvent désormais suivre la progression des livraisons et enregistrer les montants collectés directement depuis le tableau de bord. L'interface est entièrement localisée et supporte le miroir dynamique de mise en page pour l'arabe.
+- **🇩🇿 Arabic:** تم تنفيذ وحدة إدارة الطرود مع تتبع الحالة في الوقت الفعلي ودمج تحصيل الأموال. يمكن للمستخدمين الآن مراقبة تقدم التسليم وتسجيل المبالغ المحصلة مباشرة من لوحة التحكم. الواجهة معربة بالكامل وتدعم عكس التخطيط الديناميكي للغة العربية.
+
+---
+### Step 10: Desktop POS Transformation - Phase 5 (Product Management)
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Implemented the Product Management module with full CRUD capabilities. Added a searchable product table and an intuitive dialog for adding/editing inventory items. Integrated category selection and stock tracking with the backend services. The UI is fully localized and supports RTL layout for Arabic.
+- **🇫🇷 French:** Implémentation du module de gestion des produits avec des capacités CRUD complètes. Ajout d'un tableau de produits consultable et d'un dialogue intuitif pour l'ajout/modification d'articles d'inventaire. Intégration de la sélection de catégorie et du suivi des stocks avec les services backend. L'interface est entièrement localisée et supporte la mise en page RTL pour l'arabe.
+- **🇩🇿 Arabic:** تم تنفيذ وحدة إدارة المنتجات مع إمكانيات CRUD كاملة. تمت إضافة جدول منتجات قابل للبحث وحوار بديهي لإضافة/تعديل عناصر المخزون. تم دمج اختيار الفئات وتتبع المخزون مع خدمات الواجهة الخلفية. واجهة المستخدم معربة بالكامل وتدعم تخطيط RTL للغة العربية.
+
+---
+### Step 10: Desktop POS Transformation - Phase 5 (Sales Terminal)
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Implemented a sophisticated multi-tab Sales Terminal within the main dashboard. Features include barcode scanning integration, real-time stock and price calculation, and a localized checkout process. The UI automatically adjusts to RTL layout for Arabic and updates all labels dynamically upon language switching.
+- **🇫🇷 French:** Implémentation d'un terminal de vente multi-onglets sophistiqué dans le tableau de bord principal. Les fonctionnalités incluent l'intégration de la lecture de codes-barres, le calcul en temps réel des stocks et des prix, et un processus d'encaissement localisé. L'interface s'ajuste automatiquement à la mise en page RTL pour l'arabe et met à jour dynamiquement tous les libellés lors du changement de langue.
+- **🇩🇿 Arabic:** تم تنفيذ محطة مبيعات متطورة متعددة علامات التبويب داخل لوحة التحكم الرئيسية. تشمل الميزات دمج مسح الرمز الشريطي (barcode)، وحساب المخزون والأسعار في الوقت الفعلي، وعملية دفع معربة. تتكيف واجهة المستخدم تلقائيًا مع تخطيط RTL للغة العربية وتحدث جميع التسميات ديناميكيًا عند تبديل اللغة.
+
+---
+### Step 10: Desktop POS Transformation - Phase 5 (UI Initial)
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Designed and implemented the first set of UI windows (`LoginWindow`, `DashboardWindow`). Established a modern CSS-based styling system with native support for Right-to-Left (RTL) mirroring and dynamic language switching. Integrated `AuthService` for secure user login. Verified UI behavior and localization through automated `pytest-qt` tests in offscreen mode.
+- **🇫🇷 French:** Conception et implémentation du premier ensemble de fenêtres d'interface (`LoginWindow`, `DashboardWindow`). Établissement d'un système de style moderne basé sur CSS avec support natif du miroir Droite-à-Gauche (RTL) et du basculement dynamique de langue. Intégration d'`AuthService` pour une connexion utilisateur sécurisée. Vérification du comportement de l'interface et de la localisation via des tests automatisés `pytest-qt` en mode offscreen.
+- **🇩🇿 Arabic:** تصميم وتنفيذ المجموعة الأولى من نوافذ واجهة المستخدم (`LoginWindow` و `DashboardWindow`). تأسيس نظام تنسيق حديث يعتمد على CSS مع دعم أصلي لعكس التخطيط من اليمين إلى اليسار (RTL) والتبديل الديناميكي للغة. تم دمج `AuthService` لتسجيل دخول المستخدم بشكل آمن. تم التحقق من سلوك واجهة المستخدم والترجمة من خلال اختبارات `pytest-qt` المؤتمتة في وضع عدم الاتصال (offscreen).
+
+---
+### Step 10: Desktop POS Transformation - Phase 4
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Migrated and implemented core business logic services (`ProductService`, `SaleService`, `FinanceService`, `ParcelService`). Each service is designed for offline operation with full audit logging and integrated optimistic locking to ensure data consistency. Successfully verified the complete sale-to-cash integration flow through comprehensive integration tests.
+- **🇫🇷 French:** Migration et implémentation des services de logique métier (`ProductService`, `SaleService`, `FinanceService`, `ParcelService`). Chaque service est conçu pour un fonctionnement hors ligne avec une journalisation d'audit complète et un verrouillage optimiste intégré pour garantir la cohérence des données. Vérification réussie du flux d'intégration complet vente-caisse via des tests d'intégration exhaustifs.
+- **🇩🇿 Arabic:** تم ترحيل وتنفيذ خدمات منطق الأعمال الأساسية (`ProductService` و `SaleService` و `FinanceService` و `ParcelService`). تم تصميم كل خدمة للعمل في وضع عدم الاتصال مع تسجيل تدقيق كامل وقفل متفائل متكامل لضمان اتساق البيانات. تم التحقق بنجاح من تدفق التكامل الكامل من البيع إلى النقد من خلال اختبارات تكامل شاملة.
+
+---
+### Step 10: Desktop POS Transformation - Phase 3
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Implemented the full SQLite database schema using SQLAlchemy. Included optimistic locking via a `version` column to handle multi-tab sales consistency. Added dedicated tables for `audit_logs`, `sync_queue`, and financial tracking (`cash_registers`, `withdrawals`). Verified model integrity and concurrency handling with automated unit tests.
+- **🇫🇷 French:** Implémentation du schéma complet de la base de données SQLite avec SQLAlchemy. Inclusion du verrouillage optimiste via une colonne `version` pour gérer la cohérence des ventes multi-onglets. Ajout de tables dédiées pour `audit_logs`, `sync_queue`, et le suivi financier (`cash_registers`, `withdrawals`). Vérification de l'intégrité des modèles et de la gestion de la concurrence avec des tests unitaires automatisés.
+- **🇩🇿 Arabic:** تم تنفيذ مخطط قاعدة بيانات SQLite بالكامل باستخدام SQLAlchemy. يتضمن ذلك القفل المتفائل عبر عمود `version` لضمان اتساق المبيعات في علامات تبويب متعددة. تمت إضافة جداول مخصصة لـ `audit_logs` و `sync_queue` والتتبع المالي (`cash_registers` و `withdrawals`). تم التحقق من سلامة النماذج ومعالجة التزامن من خلال اختبارات الوحدة المؤتمتة.
+
+---
+### Step 10: Desktop POS Transformation - Phase 1 & 2
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Initialized the desktop application environment using PyQt6. Established a local-first architecture with SQLite3. Implemented a centralized `Translator` manager for dynamic switching between Arabic, French, and English, including full Right-to-Left (RTL) support for the Arabic interface.
+- **🇫🇷 French:** Initialisation de l'environnement de l'application bureau avec PyQt6. Établissement d'une architecture locale-first avec SQLite3. Implémentation d'un gestionnaire `Translator` centralisé pour le basculement dynamique entre l'arabe, le français et l'anglais, incluant le support complet du mode droite-à-gauche (RTL) pour l'interface arabe.
+- **🇩🇿 Arabic:** تم البدء في تهيئة بيئة تطبيق سطح المكتب باستخدام PyQt6. تأسيس بنية تعتمد على التخزين المحلي أولاً باستخدام SQLite3. تم تنفيذ مدير ترجمة (`Translator`) مركزي للتبديل الديناميكي بين اللغات العربية والفرنسية والإنجليزية، مع دعم كامل للتخطيط من اليمين إلى اليسار (RTL) للواجهة العربية.
 # 🇬🇧 Project History | 🇫🇷 Historique du Projet | 🇩🇿 تاريخ المشروع
 
 This file tracks the major development steps of the Gestion Commerce system.
