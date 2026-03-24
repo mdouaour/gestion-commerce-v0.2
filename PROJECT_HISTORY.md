@@ -6,6 +6,16 @@ Ce fichier suit les principales étapes de développement du système Gestion Co
 
 ---
 
+### Step 9.5: Internationalization (i18n) - Phase 2 & 3
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** All hardcoded text from UI components (`LoginPage`, `DashboardPage`) has been extracted and replaced with a structured key system (e.g., `login.title`). The JSON locale files have been populated with these keys. This decouples text from the code, making the app fully translatable and easier to maintain.
+- **🇫🇷 French:** Tout le texte en dur des composants d'interface (`LoginPage`, `DashboardPage`) a été extrait et remplacé par un système de clés structurées (ex: `login.title`). Les fichiers de locales JSON ont été peuplés avec ces clés. Cela découple le texte du code, rendant l'application entièrement traduisible et plus facile à maintenir.
+- **🇩🇿 Arabic:** تم استخراج كل النصوص الثابتة من مكونات واجهة المستخدم (`LoginPage`, `DashboardPage`) واستبدالها بنظام مفاتيح منظم (مثال: `login.title`). تم ملء ملفات اللغات JSON بهذه المفاتيح. هذا يفصل النص عن الكود، مما يجعل التطبيق قابلاً للترجمة بالكامل وأسهل في الصيانة.
+
+---
+
 ### Step 9.5: Internationalization (i18n) - Phase 1
 
 **Date:** 2026-03-24
