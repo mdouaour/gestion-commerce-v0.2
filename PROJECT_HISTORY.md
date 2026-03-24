@@ -5,6 +5,15 @@ Ce fichier suit les principales étapes de développement du système Gestion Co
 هذا الملف يتتبع خطوات التطوير الرئيسية لنظام Gestion Commerce.
 
 ---
+### Step 9.5: Internationalization (i18n) - Phase 4 & 5
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Implemented a persistent language switcher component. The selected language is saved to `localStorage` for a consistent user experience. Added foundational support for Right-to-Left (RTL) layout by dynamically setting `dir="rtl"` on the HTML element when Arabic is selected.
+- **🇫🇷 French:** Implémentation d'un sélecteur de langue persistant. La langue sélectionnée est sauvegardée dans le `localStorage` pour une expérience utilisateur cohérente. Ajout du support fondamental pour la mise en page de droite à gauche (RTL) en définissant dynamiquement `dir="rtl"` sur l'élément HTML lorsque l'arabe est sélectionné.
+- **🇩🇿 Arabic:** تم تنفيذ مكون تبديل لغة ثابت. يتم حفظ اللغة المختارة في `localStorage` لتوفير تجربة مستخدم متسقة. تمت إضافة الدعم الأساسي للتخطيط من اليمين إلى اليسار (RTL) عن طريق تعيين `dir="rtl"` ديناميكيًا على عنصر HTML عند تحديد اللغة العربية.
+
+---
 
 ### Step 9.5: Internationalization (i18n) - Phase 2 & 3
 
