@@ -1,5 +1,18 @@
 {
     "common": {
         "loading": "جار التحميل..."
+    },
+    "login": {
+        "title": "Welcome Back",
+        "usernameLabel": "Username",
+        "passwordLabel": "Password",
+        "signInButton": "Sign In",
+        "errorMessage": "Login failed. Please check your credentials."
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "welcomeMessage": "Welcome, {{username}}!",
+        "roleInfo": "Your role is: {{role}}",
+        "logoutButton": "Logout"
     }
 }

@@ -2,8 +2,10 @@ import { useState, FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { LogIn } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,9 +24,8 @@ const LoginPage = () => {
       });
       
       login(response.data.access_token);
-      // The App component will handle the redirect
     } catch (err) {
-      setError('Login failed. Please check your credentials.');
+      setError(t('login.errorMessage'));
       console.error(err);
     }
   };
@@ -36,7 +37,7 @@ const LoginPage = () => {
             <LogIn className="w-12 h-12 text-blue-600"/>
         </div>
         <h2 className="text-2xl font-bold text-center text-gray-900">
-          Welcome Back
+          {t('login.title')}
         </h2>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
@@ -44,7 +45,7 @@ const LoginPage = () => {
               htmlFor="username"
               className="text-sm font-medium text-gray-700"
             >
-              Username
+              {t('login.usernameLabel')}
             </label>
             <input
               id="username"
@@ -61,7 +62,7 @@ const LoginPage = () => {
               htmlFor="password"
               className="text-sm font-medium text-gray-700"
             >
-              Password
+              {t('login.passwordLabel')}
             </label>
             <input
               id="password"
@@ -79,7 +80,7 @@ const LoginPage = () => {
               type="submit"
               className="w-full px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Sign In
+              {t('login.signInButton')}
             </button>
           </div>
         </form>

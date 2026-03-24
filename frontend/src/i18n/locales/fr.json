@@ -1,5 +1,18 @@
 {
     "common": {
         "loading": "Chargement..."
+    },
+    "login": {
+        "title": "Bienvenue",
+        "usernameLabel": "Nom d'utilisateur",
+        "passwordLabel": "Mot de passe",
+        "signInButton": "Se connecter",
+        "errorMessage": "Échec de la connexion. Veuillez vérifier vos identifiants."
+    },
+    "dashboard": {
+        "title": "Tableau de Bord",
+        "welcomeMessage": "Bienvenue, {{username}}!",
+        "roleInfo": "Votre rôle est : {{role}}",
+        "logoutButton": "Déconnexion"
     }
 }
