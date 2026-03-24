@@ -1,22 +1,16 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const DashboardPage = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
-
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-  };
 
   return (
     <div className="p-8">
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
-        <div className="flex items-center space-x-2">
-            <button onClick={() => changeLanguage('fr')} className="px-2 py-1 text-sm bg-gray-200 rounded">FR</button>
-            <button onClick={() => changeLanguage('ar')} className="px-2 py-1 text-sm bg-gray-200 rounded">AR</button>
-        </div>
+        <LanguageSwitcher />
       </div>
       <p className="mt-2 text-lg">
         {t('dashboard.welcomeMessage', { username: user?.username })}

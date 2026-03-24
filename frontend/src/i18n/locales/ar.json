@@ -3,16 +3,16 @@
         "loading": "جار التحميل..."
     },
     "login": {
-        "title": "Welcome Back",
-        "usernameLabel": "Username",
-        "passwordLabel": "Password",
-        "signInButton": "Sign In",
-        "errorMessage": "Login failed. Please check your credentials."
+        "title": "مرحباً بعودتك",
+        "usernameLabel": "اسم المستخدم",
+        "passwordLabel": "كلمة المرور",
+        "signInButton": "تسجيل الدخول",
+        "errorMessage": "فشل تسجيل الدخول. يرجى التحقق من بيانات الاعتماد الخاصة بك."
     },
     "dashboard": {
-        "title": "Dashboard",
-        "welcomeMessage": "Welcome, {{username}}!",
-        "roleInfo": "Your role is: {{role}}",
-        "logoutButton": "Logout"
+        "title": "لوحة التحكم",
+        "welcomeMessage": "مرحباً، {{username}}!",
+        "roleInfo": "دورك هو: {{role}}",
+        "logoutButton": "تسجيل الخروج"
     }
 }

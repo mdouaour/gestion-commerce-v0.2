@@ -3,9 +3,11 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import { useDirection } from './hooks/useDirection';
 
 const AppRoutes = () => {
   const { isAuthenticated } = useAuth();
+  useDirection(); // Apply directionality globally
 
   return (
     <Routes>
