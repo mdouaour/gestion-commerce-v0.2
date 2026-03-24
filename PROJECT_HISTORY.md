@@ -1,5 +1,14 @@
 
 ---
+### Step 10: Desktop POS Transformation - Enhancements & Seeding
+
+**Date:** 2026-03-24
+
+- **🇬🇧 English:** Enhanced the Dashboard with a persistent language switcher and Role-Based Access Control (RBAC) to hide Admin/Finance from cashiers. Created a `seed_data.py` script that populates the system with 30 days of realistic sales, products, and a test cashier account (`caissier` / `caissier123`). Updated the Windows run script to automate data seeding.
+- **🇫🇷 French:** Amélioration du tableau de bord avec un sélecteur de langue persistant et un contrôle d'accès basé sur les rôles (RBAC) pour masquer les modules Admin/Finance aux caissiers. Création d'un script `seed_data.py` qui alimente le système avec 30 jours de ventes réalistes, de produits et un compte caissier de test (`caissier` / `caissier123`). Mise à jour du script de lancement Windows pour automatiser le peuplement des données.
+- **🇩🇿 Arabic:** تحسين لوحة التحكم باستخدام مفتاح تبديل لغة ثابت والتحكم في الوصول القائم على الأدوار (RBAC) لإخفاء وحدتي الإدارة والمالية عن الصرافين. تم إنشاء نص `seed_data.py` الذي يملأ النظام بـ 30 يومًا من المبيعات والمنتجات الواقعية وحساب صراف تجريبي (`caissier` / `caissier123`). تم تحديث نص التشغيل الخاص بـ Windows لأتمتة بذر البيانات.
+
+---
 ### Step 10: Desktop POS Transformation - Phase 5 (Finance Management)
 
 **Date:** 2026-03-24

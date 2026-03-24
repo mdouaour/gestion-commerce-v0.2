@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QStackedWidget, QFrame
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QStackedWidget, QFrame, QComboBox
 from PyQt6.QtCore import Qt, pyqtSignal
 from src.core.translator import translator
 from src.ui.styles import get_main_style
@@ -39,9 +39,9 @@ class DashboardWindow(QMainWindow):
         # Sidebar buttons
         self.btn_dashboard = QPushButton(translator.translate('dashboard.title'))
         self.btn_sales = QPushButton(translator.translate('dashboard.sales'))
-        self.btn_products = QPushButton(translator.translate('products.title') if hasattr(translator, 'translate') else "Products")
-        self.btn_parcels = QPushButton(translator.translate('parcels.title') if hasattr(translator, 'translate') else "Parcels")
-        self.btn_finance = QPushButton(translator.translate('finance.title') if hasattr(translator, 'translate') else "Finance")
+        self.btn_products = QPushButton(translator.translate('products.title'))
+        self.btn_parcels = QPushButton(translator.translate('parcels.title'))
+        self.btn_finance = QPushButton(translator.translate('finance.title'))
         self.btn_admin = QPushButton("Admin")
 
         self.nav_btns = [self.btn_dashboard, self.btn_sales, self.btn_products, self.btn_parcels, self.btn_finance, self.btn_admin]
@@ -52,8 +52,20 @@ class DashboardWindow(QMainWindow):
             btn.clicked.connect(lambda checked, idx=i: self.content_stack.setCurrentIndex(idx))
             self.sidebar_layout.addWidget(btn)
 
+        # RBAC: Hide sensitive modules for non-admins
+        if self.user.role != 'admin':
+            self.btn_finance.hide()
+            self.btn_admin.hide()
+
         self.sidebar_layout.addStretch()
         
+        # Language Switcher in Dashboard
+        self.lang_combo = QComboBox()
+        self.lang_combo.addItems(['fr', 'ar', 'en'])
+        self.lang_combo.setCurrentText(translator.current_lang)
+        self.lang_combo.currentTextChanged.connect(translator.set_language)
+        self.sidebar_layout.addWidget(self.lang_combo)
+
         self.logout_btn = QPushButton(translator.translate('dashboard.logoutButton'))
         self.logout_btn.setObjectName('danger')
         self.logout_btn.clicked.connect(self.logout_requested.emit)
@@ -95,7 +107,7 @@ class DashboardWindow(QMainWindow):
         # Page 5: Admin
         self.admin_page = QWidget()
         layout = QVBoxLayout(self.admin_page)
-        layout.addWidget(QLabel("Admin Module - Coming Soon"))
+        layout.addWidget(QLabel("Admin Module - System Settings & Users"))
         self.content_stack.addWidget(self.admin_page)
 
         self.update_layout_direction(translator.current_lang)
