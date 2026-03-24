@@ -2,7 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.product import Product
 from app.models.base import StockHistory
 from app.schemas.stock import StockAdjustment
-from typing import Optional
+from typing import Optional, List
+from sqlalchemy import select
 
 class StockService:
     @staticmethod
@@ -37,4 +38,11 @@ class StockService:
         await db.refresh(product)
         return product
 
-from sqlalchemy import select
+    @staticmethod
+    async def get_history(db: AsyncSession, product_id: int) -> List[StockHistory]:
+        result = await db.execute(
+            select(StockHistory)
+            .where(StockHistory.product_id == product_id)
+            .order_by(StockHistory.created_at.desc())
+        )
+        return result.scalars().all()

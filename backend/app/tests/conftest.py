@@ -1,8 +1,10 @@
 import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from app.core.database import Base
+from app.core.database import Base, get_db
 import os
 import asyncio
+from httpx import AsyncClient
+from app.main import app
 
 # Use a test database
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_app.db"
@@ -31,3 +33,13 @@ async def db_session():
     async with TestingSessionLocal() as session:
         yield session
         await session.close()
+
+@pytest.fixture
+async def client(db_session):
+    async def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
+    app.dependency_overrides.clear()
