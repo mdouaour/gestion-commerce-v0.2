@@ -23,6 +23,7 @@ dist/
 # Databases
 *.sqlite3
 *.db
+backend/sql_app.db
 
 # IDEs
 .vscode/
