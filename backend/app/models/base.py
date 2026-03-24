@@ -1,6 +1,6 @@
-from backend.app.core.database import Base
-from backend.app.models.user import User
-from backend.app.models.product import Product, Category
+from app.core.database import Base
+from app.models.user import User
+from app.models.product import Product, Category
 from sqlalchemy import String, DateTime, ForeignKey, Integer, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime

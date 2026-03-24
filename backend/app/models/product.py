@@ -2,7 +2,7 @@ from sqlalchemy import String, DateTime, Text, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List, TYPE_CHECKING
-from backend.app.core.database import Base
+from app.core.database import Base
 
 if TYPE_CHECKING:
     from .product import Product
