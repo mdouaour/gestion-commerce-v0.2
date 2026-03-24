@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from app.core.config import settings
 from app.core.database import SessionLocal, get_db
-from app.core.errors import ErrorCode
+from app.core.errors import ErrorCode # Import ErrorCode enum
 from app.models.user import User, UserRole
 from app.schemas.user import TokenData
 from app.services.user_service import UserService
@@ -16,11 +16,10 @@ reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/auth/login"
 )
 
-# Centralized HTTP Exception with error code
-def raise_http_exception(status_code: int, code: ErrorCode, detail: Optional[str] = None):
-    # The detail is a fallback for developers, not for end-users.
-    # The frontend should use the 'code' for translation.
-    raise HTTPException(status_code=status_code, detail={"code": code.value, "detail": detail or code.name})
+# Dependency to get db session (kept here for route dependencies)
+async def get_db() -> Generator:
+    async with SessionLocal() as session:
+        yield session
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db),

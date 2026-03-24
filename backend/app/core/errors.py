@@ -1,4 +1,5 @@
 from enum import Enum
+from fastapi import HTTPException, status
 
 class ErrorCode(str, Enum):
     # Auth
@@ -24,3 +25,12 @@ class ErrorCode(str, Enum):
     BAD_REQUEST = "BAD_REQUEST"
     NOT_FOUND = "NOT_FOUND"
     INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
+
+# Centralized HTTP Exception with error code
+def raise_http_exception(status_code: int, code: ErrorCode, detail: Optional[str] = None):
+    # The detail is a fallback for developers, not for end-users.
+    # The frontend should use the 'code' for translation.
+    raise HTTPException(
+        status_code=status_code, 
+        detail={"code": code.value, "detail": detail or code.name}
+    )
