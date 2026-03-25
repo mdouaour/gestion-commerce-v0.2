@@ -125,8 +125,14 @@ class ParcelManagement(QWidget):
         layout = QFormLayout(dialog)
         
         status_combo = QComboBox()
-        status_options = [ParcelStatus.CREATED, ParcelStatus.IN_TRANSIT, ParcelStatus.DELIVERED, ParcelStatus.RETURNED]
-        status_combo.addItems([s.upper() for s in status_options])
+        status_options = [
+            ParcelStatus.CREATED, 
+            ParcelStatus.IN_DELIVERY, 
+            ParcelStatus.DELIVERED, 
+            ParcelStatus.RETURNED,
+            ParcelStatus.EXCHANGED
+        ]
+        status_combo.addItems([s.value.upper() for s in status_options])
         status_combo.setCurrentText(parcel.status.upper())
         
         layout.addRow("New Status:", status_combo)

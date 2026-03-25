@@ -39,6 +39,8 @@ class ParcelTableModel(QAbstractTableModel):
             if col == 2:
                 if parcel.status == 'delivered': return Qt.GlobalColor.darkGreen
                 if parcel.status == 'returned': return Qt.GlobalColor.red
+                if parcel.status == 'in_delivery': return Qt.GlobalColor.darkBlue
+                if parcel.status == 'exchanged': return Qt.GlobalColor.magenta
             if col == 4:
                 return Qt.GlobalColor.darkGreen if parcel.is_money_collected else Qt.GlobalColor.darkYellow
 
