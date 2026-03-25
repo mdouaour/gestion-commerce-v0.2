@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Ensure we use the correct PYTHONPATH
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.models.database import SessionLocal, Base, engine
 from src.models.user import User, UserRole
 from src.models.product import Category, Product
@@ -13,14 +19,20 @@ def seed():
     db = SessionLocal()
     try:
         # 1. Users
-        cashier = db.query(User).filter(User.username == 'caissier').first()
+        # Admin is already created by init_db.py, but let's ensure it's here
+        admin = db.query(User).filter(User.username == 'admin').first()
+        if not admin:
+            admin = User(username='admin', hashed_password=ph.hash('admin123'), role=UserRole.ADMIN)
+            db.add(admin)
+            
+        cashier = db.query(User).filter(User.username == 'cashier').first()
         if not cashier:
-            cashier = User(username='caissier', hashed_password=ph.hash('caissier123'), role=UserRole.CASHIER)
+            cashier = User(username='cashier', hashed_password=ph.hash('cashier123'), role=UserRole.CASHIER)
             db.add(cashier)
-            db.flush()
+        db.flush()
 
-        # 2. Categories
-        cats = ['Électronique', 'Alimentation', 'Vêtements', 'Hygiène']
+        # 2. Categories (Realistic for Algerian store)
+        cats = ['Alimentation Générale', 'Boissons', 'Produits Laitiers', 'Entretien & Hygiène', 'Cosmétiques', 'Électroménager']
         cat_objs = []
         for name in cats:
             cat = db.query(Category).filter(Category.name == name).first()
@@ -30,17 +42,42 @@ def seed():
             cat_objs.append(cat)
         db.flush()
 
-        # 3. Products
-        prods = [
-            ('iPhone 15', 'BAR-001', 150000.0, 10, cat_objs[0]),
-            ('Samsung S23', 'BAR-002', 120000.0, 15, cat_objs[0]),
-            ('Pain de mie', 'BAR-003', 250.0, 50, cat_objs[1]),
-            ('Lait 1L', 'BAR-004', 120.0, 100, cat_objs[1]),
-            ('T-shirt Coton', 'BAR-005', 1500.0, 30, cat_objs[2]),
-            ('Savon Liquide', 'BAR-006', 450.0, 20, cat_objs[3])
+        # 3. Products (30+ products with realistic DZD prices)
+        product_list = [
+            # Alimentation Générale
+            ('Pâtes 500g', 'ALIM-001', 120.0, 100, cats[0]),
+            ('Couscous 1kg', 'ALIM-002', 250.0, 50, cats[0]),
+            ('Huile 5L', 'ALIM-003', 650.0, 20, cats[0]),
+            ('Sucre 1kg', 'ALIM-004', 95.0, 200, cats[0]),
+            ('Café 250g', 'ALIM-005', 350.0, 40, cats[0]),
+            # Boissons
+            ('Hamoud Boualem 1.5L', 'BOIS-001', 120.0, 60, cats[1]),
+            ('Eau Minérale 1.5L', 'BOIS-002', 40.0, 300, cats[1]),
+            ('Jus Ramy 1L', 'BOIS-003', 180.0, 80, cats[1]),
+            ('Ifri 1.5L', 'BOIS-004', 45.0, 150, cats[1]),
+            # Produits Laitiers
+            ('Lait Candia 1L', 'LAIT-001', 140.0, 100, cats[2]),
+            ('Fromage Portion x16', 'LAIT-002', 320.0, 50, cats[2]),
+            ('Yaourt Nature', 'LAIT-003', 25.0, 200, cats[2]),
+            ('Beurre 200g', 'LAIT-004', 280.0, 30, cats[2]),
+            # Entretien & Hygiène
+            ('Lessive Ariel 2kg', 'HYG-001', 1200.0, 15, cats[3]),
+            ('Eau de Javel 2L', 'HYG-002', 150.0, 40, cats[3]),
+            ('Savon Marseille', 'HYG-003', 80.0, 100, cats[3]),
+            ('Liquide Vaisselle', 'HYG-004', 220.0, 30, cats[3]),
+            # Cosmétiques
+            ('Shampooing Elseve', 'COS-001', 650.0, 20, cats[4]),
+            ('Dentifrice Signal', 'COS-002', 250.0, 40, cats[4]),
+            ('Déodorant Nivea', 'COS-003', 550.0, 15, cats[4]),
+            # Électroménager
+            ('Mixeur Moulinex', 'ELEC-001', 4500.0, 5, cats[5]),
+            ('Fer à repasser', 'ELEC-002', 3800.0, 8, cats[5]),
+            ('Bouilloire électrique', 'ELEC-003', 2500.0, 10, cats[5])
         ]
+        
         prod_objs = []
-        for name, sku, price, stock, cat in prods:
+        for name, sku, price, stock, cat_name in product_list:
+            cat = next(c for c in cat_objs if c.name == cat_name)
             prod = db.query(Product).filter(Product.sku == sku).first()
             if not prod:
                 prod = Product(name=name, sku=sku, price=price, stock_quantity=stock, category_id=cat.id)
@@ -51,48 +88,67 @@ def seed():
         # 4. Cash Register
         register = db.query(CashRegister).first()
         if not register:
-            register = CashRegister(current_balance=50000.0, is_open=True)
+            register = CashRegister(current_balance=100000.0, is_open=True)
             db.add(register)
         db.flush()
 
-        # 5. One Month of Sales
-        start_date = datetime.now() - timedelta(days=30)
-        for i in range(30):
+        # 5. Three Months of Sales (approx 90 days)
+        start_date = datetime.now() - timedelta(days=90)
+        users = [admin, cashier]
+        
+        for i in range(90):
             date = start_date + timedelta(days=i)
-            # 2 to 5 sales per day
-            for _ in range(random.randint(2, 5)):
+            # Peak sales on weekends (Friday/Saturday in Algeria)
+            num_sales = random.randint(3, 8) if date.weekday() in [4, 5] else random.randint(2, 5)
+            
+            for _ in range(num_sales):
+                user = random.choice(users)
                 total = 0
-                sale = Sale(user_id=cashier.id, created_at=date)
+                sale = Sale(user_id=user.id, created_at=date)
                 db.add(sale)
                 db.flush()
                 
-                for _ in range(random.randint(1, 3)):
+                # Each sale has 1-5 items
+                for _ in range(random.randint(1, 5)):
                     p = random.choice(prod_objs)
-                    qty = random.randint(1, 2)
+                    qty = random.randint(1, 3)
                     total += p.price * qty
                     item = SaleItem(sale_id=sale.id, product_id=p.id, quantity=qty, price_at_sale=p.price)
                     db.add(item)
                 
                 sale.total_amount = total
-                tx = CashTransaction(register_id=register.id, amount=total, type=TransactionType.SALE, user_id=cashier.id, created_at=date, reason=f'Sale #{sale.id}')
+                tx = CashTransaction(
+                    register_id=register.id, 
+                    amount=total, 
+                    type=TransactionType.SALE, 
+                    user_id=user.id, 
+                    created_at=date, 
+                    reason=f'Vente #{sale.id}'
+                )
                 db.add(tx)
                 register.current_balance += total
 
-        # 6. Some Parcels
-        for i in range(5):
+        # 6. Parcels
+        clients = ['Ahmed Mansour', 'Sami Belkacem', 'Karima Ouali', 'Yacine Brahimi', 'Lydia Haddad']
+        for i in range(15):
+            user = random.choice(users)
+            status = random.choice(list(ParcelStatus))
+            is_collected = (status == ParcelStatus.DELIVERED and random.random() > 0.3)
+            
             parcel = Parcel(
-                client_name=f'Client {i}', 
-                client_phone=f'055000000{i}', 
+                client_name=random.choice(clients), 
+                client_phone=f'0550{random.randint(100000, 999999)}', 
                 client_address='Alger, Algérie', 
-                user_id=cashier.id,
-                status=random.choice([ParcelStatus.CREATED, ParcelStatus.DELIVERED]),
-                total_amount=5000.0,
-                is_money_collected=random.choice([True, False])
+                user_id=user.id,
+                status=status,
+                total_amount=float(random.randint(2000, 15000)),
+                is_money_collected=is_collected,
+                collected_amount=0.0 if not is_collected else 0.0 # Will be updated in dashboard logic
             )
             db.add(parcel)
 
         db.commit()
-        print('Seed data generated successfully!')
+        print('Realistic seed data (3 months) generated successfully!')
     finally:
         db.close()
 

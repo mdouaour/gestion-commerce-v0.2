@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Ensure we use the correct PYTHONPATH
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.models.database import Base, engine, SessionLocal
 from src.models.user import User, UserRole
 from src.models.product import Category, Product, SyncQueue

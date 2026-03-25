@@ -7,6 +7,9 @@ from src.ui.product_window import ProductManagement
 from src.ui.parcel_window import ParcelManagement
 from src.ui.finance_window import FinanceManagement
 
+from src.services.dashboard_service import DashboardService
+from src.models.database import SessionLocal
+
 class DashboardWindow(QMainWindow):
     logout_requested = pyqtSignal()
 
@@ -14,9 +17,11 @@ class DashboardWindow(QMainWindow):
         super().__init__()
         self.user = user
         self.init_ui()
+        self.refresh_metrics()
         translator.language_changed.connect(self.update_ui_text)
 
     def init_ui(self):
+        # ... rest of init_ui ...
         self.setWindowTitle(translator.translate('dashboard.title'))
         self.setMinimumSize(1100, 800)
         self.setStyleSheet(get_main_style(translator.current_lang == 'ar'))
@@ -86,6 +91,19 @@ class DashboardWindow(QMainWindow):
         self.role_label = QLabel(translator.translate('dashboard.roleInfo', role=self.user.role))
         self.welcome_layout.addWidget(self.welcome_label)
         self.welcome_layout.addWidget(self.role_label)
+
+        # Metrics Grid
+        self.metrics_container = QFrame()
+        self.metrics_layout = QVBoxLayout(self.metrics_container)
+        self.metrics_label = QLabel("Quick Stats (DZD)")
+        self.metrics_label.setStyleSheet("font-weight: bold; font-size: 16px; margin-top: 20px;")
+        self.metrics_layout.addWidget(self.metrics_label)
+        
+        self.metrics_text = QLabel("Loading...")
+        self.metrics_text.setStyleSheet("font-size: 14px; background: #f8f9fa; padding: 20px; border-radius: 10px;")
+        self.metrics_layout.addWidget(self.metrics_text)
+        self.welcome_layout.addWidget(self.metrics_container)
+
         self.content_stack.addWidget(self.welcome_page)
 
         # Page 1: Sales
@@ -111,6 +129,22 @@ class DashboardWindow(QMainWindow):
         self.content_stack.addWidget(self.admin_page)
 
         self.update_layout_direction(translator.current_lang)
+
+    def refresh_metrics(self):
+        db = SessionLocal()
+        try:
+            m = DashboardService.get_metrics(db)
+            stats = (
+                f"Cash in Register: {m['total_cash']:,.2f} DA\n"
+                f"Money to Collect: {m['money_to_collect']:,.2f} DA\n"
+                f"Money Collected: {m['money_collected']:,.2f} DA\n"
+                f"Daily Sales: {m['daily_sales']:,.2f} DA\n"
+                f"Monthly Sales: {m['monthly_sales']:,.2f} DA\n"
+                f"Estimated Profit (Month): {m['estimated_profit']:,.2f} DA"
+            )
+            self.metrics_text.setText(stats)
+        finally:
+            db.close()
 
     def update_ui_text(self, lang):
         self.setWindowTitle(translator.translate('dashboard.title'))
