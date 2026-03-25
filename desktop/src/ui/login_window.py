@@ -95,6 +95,7 @@ class LoginWindow(QWidget):
     def handle_login(self):
         # Clear previous error
         self.error_label.setText("")
+        self.error_label.setStyleSheet('color: #e74c3c; font-size: 13px; font-weight: bold;')
         
         username = self.user_combo.currentText()
         password = self.password_input.text()
@@ -118,17 +119,6 @@ class LoginWindow(QWidget):
 
     def update_ui_text(self, lang):
         self.setWindowTitle(translator.translate('login.title'))
-        self.password_input.setPlaceholderText(translator.translate('login.passwordLabel'))
-        self.login_btn.setText(translator.translate('login.signInButton'))
-        # Re-apply styles if needed (for RTL)
-        if lang == 'ar':
-            self.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
-        else:
-            self.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-
-    def update_ui_text(self, lang):
-        self.setWindowTitle(translator.translate('login.title'))
-        self.username_input.setPlaceholderText(translator.translate('login.usernameLabel'))
         self.password_input.setPlaceholderText(translator.translate('login.passwordLabel'))
         self.login_btn.setText(translator.translate('login.signInButton'))
         self.setStyleSheet(get_main_style(lang == 'ar'))

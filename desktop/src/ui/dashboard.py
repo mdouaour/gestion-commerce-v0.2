@@ -1,11 +1,13 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QStackedWidget, QFrame, QComboBox
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QStackedWidget, QFrame, QComboBox, QScrollArea, QStatusBar
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QDateTime, QEvent
 from src.core.translator import translator
 from src.ui.styles import get_main_style
 from src.ui.sales_window import SalesTerminal
 from src.ui.product_window import ProductManagement
 from src.ui.parcel_window import ParcelManagement
 from src.ui.finance_window import FinanceManagement
+from src.ui.components.kpi_card import KPICard
+from src.ui.components.charts import SalesTrendChart
 
 from src.services.dashboard_service import DashboardService
 from src.models.database import SessionLocal
@@ -17,60 +19,59 @@ class DashboardWindow(QMainWindow):
         super().__init__()
         self.user = user
         self.init_ui()
+        self.setup_security()
         self.refresh_metrics()
         translator.language_changed.connect(self.update_ui_text)
 
     def init_ui(self):
-        # ... rest of init_ui ...
         self.setWindowTitle(translator.translate('dashboard.title'))
-        self.setMinimumSize(1100, 800)
+        self.setMinimumSize(1250, 850)
         self.setStyleSheet(get_main_style(translator.current_lang == 'ar'))
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.main_layout = QHBoxLayout(self.central_widget)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
 
-        # Sidebar
+        # --- SIDEBAR ---
         self.sidebar = QFrame()
-        self.sidebar.setFixedWidth(200)
-        self.sidebar.setStyleSheet("background-color: #2c3e50; border-right: 1px solid #dcdde1;")
+        self.sidebar.setObjectName("sidebar")
+        self.sidebar.setFixedWidth(240)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
-        self.sidebar_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.sidebar_layout.setContentsMargins(15, 25, 15, 25)
+        self.sidebar_layout.setSpacing(8)
 
-        self.sidebar_label = QLabel("POS MENU")
-        self.sidebar_label.setStyleSheet("color: white; font-weight: bold; font-size: 18px; margin-bottom: 20px;")
+        self.sidebar_label = QLabel("G-POS SYSTEM")
+        self.sidebar_label.setStyleSheet("color: white; font-weight: 800; font-size: 22px; margin-bottom: 40px; padding-left: 10px;")
         self.sidebar_layout.addWidget(self.sidebar_label)
 
-        # Sidebar buttons
-        self.btn_dashboard = QPushButton(translator.translate('dashboard.title'))
-        self.btn_sales = QPushButton(translator.translate('dashboard.sales'))
-        self.btn_products = QPushButton(translator.translate('products.title'))
-        self.btn_parcels = QPushButton(translator.translate('parcels.title'))
-        self.btn_finance = QPushButton(translator.translate('finance.title'))
-        self.btn_admin = QPushButton("Admin")
+        # Nav Buttons
+        self.btn_dashboard = self._create_nav_btn("🏠 " + translator.translate('dashboard.title'), 0)
+        self.btn_sales = self._create_nav_btn("🛒 " + translator.translate('dashboard.sales'), 1)
+        self.btn_products = self._create_nav_btn("📦 " + translator.translate('products.title'), 2)
+        self.btn_parcels = self._create_nav_btn("🚚 " + translator.translate('parcels.title'), 3)
+        self.btn_finance = self._create_nav_btn("💰 " + translator.translate('finance.title'), 4)
+        self.btn_admin = self._create_nav_btn("⚙️ System Admin", 5)
 
         self.nav_btns = [self.btn_dashboard, self.btn_sales, self.btn_products, self.btn_parcels, self.btn_finance, self.btn_admin]
         
-        for i, btn in enumerate(self.nav_btns):
-            btn.setStyleSheet("text-align: left; background: transparent; color: #ecf0f1; border: none; padding: 10px;")
-            btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.clicked.connect(lambda checked, idx=i: self.content_stack.setCurrentIndex(idx))
-            self.sidebar_layout.addWidget(btn)
-
-        # RBAC: Hide sensitive modules for non-admins
+        # RBAC
         if self.user.role != 'admin':
             self.btn_finance.hide()
             self.btn_admin.hide()
 
         self.sidebar_layout.addStretch()
         
-        # Language Switcher in Dashboard
+        # Language Switcher
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(['fr', 'ar', 'en'])
         self.lang_combo.setCurrentText(translator.current_lang)
         self.lang_combo.currentTextChanged.connect(translator.set_language)
+        self.sidebar_layout.addWidget(QLabel("Lang:", styleSheet="color: #bdc3c7; font-size: 11px;"))
         self.sidebar_layout.addWidget(self.lang_combo)
 
+        # Logout
         self.logout_btn = QPushButton(translator.translate('dashboard.logoutButton'))
         self.logout_btn.setObjectName('danger')
         self.logout_btn.clicked.connect(self.logout_requested.emit)
@@ -78,88 +79,123 @@ class DashboardWindow(QMainWindow):
 
         self.main_layout.addWidget(self.sidebar)
 
-        # Main Content Area
+        # --- MAIN CONTENT ---
         self.content_stack = QStackedWidget()
         self.main_layout.addWidget(self.content_stack)
 
-        # Page 0: Welcome
-        self.welcome_page = QWidget()
-        self.welcome_layout = QVBoxLayout(self.welcome_page)
-        self.welcome_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # PAGE 0: DASHBOARD OVERVIEW
+        self.overview_page = QWidget()
+        self.overview_layout = QVBoxLayout(self.overview_page)
+        self.overview_layout.setContentsMargins(40, 40, 40, 40)
+        self.overview_layout.setSpacing(25)
+        
+        header_box = QHBoxLayout()
+        welcome_vbox = QVBoxLayout()
         self.welcome_label = QLabel(translator.translate('dashboard.welcomeMessage', username=self.user.username))
         self.welcome_label.setObjectName('header')
         self.role_label = QLabel(translator.translate('dashboard.roleInfo', role=self.user.role))
-        self.welcome_layout.addWidget(self.welcome_label)
-        self.welcome_layout.addWidget(self.role_label)
-
-        # Metrics Grid
-        self.metrics_container = QFrame()
-        self.metrics_layout = QVBoxLayout(self.metrics_container)
-        self.metrics_label = QLabel("Quick Stats (DZD)")
-        self.metrics_label.setStyleSheet("font-weight: bold; font-size: 16px; margin-top: 20px;")
-        self.metrics_layout.addWidget(self.metrics_label)
+        self.role_label.setObjectName("subtitle")
+        welcome_vbox.addWidget(self.welcome_label)
+        welcome_vbox.addWidget(self.role_label)
+        header_box.addLayout(welcome_vbox)
+        header_box.addStretch()
         
-        self.metrics_text = QLabel("Loading...")
-        self.metrics_text.setStyleSheet("font-size: 14px; background: #f8f9fa; padding: 20px; border-radius: 10px;")
-        self.metrics_layout.addWidget(self.metrics_text)
-        self.welcome_layout.addWidget(self.metrics_container)
+        self.refresh_btn = QPushButton("↻ Refresh Data")
+        self.refresh_btn.setFixedWidth(150)
+        self.refresh_btn.clicked.connect(self.refresh_metrics)
+        header_box.addWidget(self.refresh_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        
+        self.overview_layout.addLayout(header_box)
 
-        self.content_stack.addWidget(self.welcome_page)
+        # KPI Cards Strip
+        kpi_layout = QHBoxLayout()
+        self.kpi_revenue = KPICard("REVENUE TODAY", "0.00", "#27ae60")
+        self.kpi_cash = KPICard("CASH IN HAND", "0.00", "#2980b9")
+        self.kpi_profit = KPICard("EST. PROFIT (MTD)", "0.00", "#8e44ad")
+        self.kpi_low_stock = KPICard("LOW STOCK", "0", "#e67e22")
+        
+        kpi_layout.addWidget(self.kpi_revenue)
+        kpi_layout.addWidget(self.kpi_cash)
+        kpi_layout.addWidget(self.kpi_profit)
+        kpi_layout.addWidget(self.kpi_low_stock)
+        self.overview_layout.addLayout(kpi_layout)
 
-        # Page 1: Sales
-        self.sales_page = SalesTerminal(self.user)
-        self.content_stack.addWidget(self.sales_page)
+        # Chart
+        self.sales_chart = SalesTrendChart()
+        self.overview_layout.addWidget(self.sales_chart)
+        self.overview_layout.addStretch()
 
-        # Page 2: Products
-        self.products_page = ProductManagement(self.user)
-        self.content_stack.addWidget(self.products_page)
+        self.content_stack.addWidget(self.overview_page)
+        self.content_stack.addWidget(SalesTerminal(self.user))
+        self.content_stack.addWidget(ProductManagement(self.user))
+        self.content_stack.addWidget(ParcelManagement(self.user))
+        self.content_stack.addWidget(FinanceManagement(self.user))
+        
+        # Status Bar
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+        self.status_bar.showMessage("Ready")
 
-        # Page 3: Parcels
-        self.parcels_page = ParcelManagement(self.user)
-        self.content_stack.addWidget(self.parcels_page)
+        self._set_active_nav(0)
 
-        # Page 4: Finance
-        self.finance_page = FinanceManagement(self.user)
-        self.content_stack.addWidget(self.finance_page)
+    def setup_security(self):
+        # 15 Minute Session Timeout
+        self.session_timer = QTimer(self)
+        self.session_timer.timeout.connect(self.handle_timeout)
+        self.session_timer.start(15 * 60 * 1000)
+        self.central_widget.installEventFilter(self)
 
-        # Page 5: Admin
-        self.admin_page = QWidget()
-        layout = QVBoxLayout(self.admin_page)
-        layout.addWidget(QLabel("Admin Module - System Settings & Users"))
-        self.content_stack.addWidget(self.admin_page)
+    def eventFilter(self, obj, event):
+        if event.type() in (QEvent.Type.MouseButtonPress, QEvent.Type.KeyPress):
+            self.session_timer.start()
+        return super().eventFilter(obj, event)
 
-        self.update_layout_direction(translator.current_lang)
+    def handle_timeout(self):
+        self.status_bar.showMessage("Session expired. Logging out...")
+        QTimer.singleShot(2000, self.logout_requested.emit)
 
+    def _create_nav_btn(self, text, index):
+        btn = QPushButton(text)
+        btn.setObjectName("nav_btn")
+        btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn.clicked.connect(lambda: self._set_active_nav(index))
+        self.sidebar_layout.addWidget(btn)
+        return btn
+
+    def _set_active_nav(self, index):
+        self.content_stack.setCurrentIndex(index)
+        for i, btn in enumerate(self.nav_btns):
+            if i == index:
+                btn.setStyleSheet("background-color: #3498db; color: white; font-weight: bold;")
+            else:
+                btn.setStyleSheet("")
+        
     def refresh_metrics(self):
+        self.status_bar.showMessage("Refreshing dashboard data...")
         db = SessionLocal()
         try:
             m = DashboardService.get_metrics(db)
-            stats = (
-                f"Cash in Register: {m['total_cash']:,.2f} DA\n"
-                f"Money to Collect: {m['money_to_collect']:,.2f} DA\n"
-                f"Money Collected: {m['money_collected']:,.2f} DA\n"
-                f"Daily Sales: {m['daily_sales']:,.2f} DA\n"
-                f"Monthly Sales: {m['monthly_sales']:,.2f} DA\n"
-                f"Estimated Profit (Month): {m['estimated_profit']:,.2f} DA"
-            )
-            self.metrics_text.setText(stats)
+            self.kpi_revenue.update_value(f"{m['daily_sales']:,.2f} DA")
+            self.kpi_cash.update_value(f"{m['total_cash']:,.2f} DA")
+            self.kpi_profit.update_value(f"{m['estimated_profit']:,.2f} DA")
+            
+            dates, values = DashboardService.get_sales_trend(db)
+            self.sales_chart.plot(dates, values)
+            self.status_bar.showMessage(f"Last sync: {QDateTime.currentDateTime().toString('hh:mm:ss')}", 5000)
         finally:
             db.close()
 
     def update_ui_text(self, lang):
         self.setWindowTitle(translator.translate('dashboard.title'))
-        self.btn_dashboard.setText(translator.translate('dashboard.title'))
-        self.btn_sales.setText(translator.translate('dashboard.sales'))
-        self.btn_products.setText(translator.translate('products.title'))
-        self.btn_parcels.setText(translator.translate('parcels.title'))
-        self.btn_finance.setText(translator.translate('finance.title'))
+        self.btn_dashboard.setText("🏠 " + translator.translate('dashboard.title'))
+        self.btn_sales.setText("🛒 " + translator.translate('dashboard.sales'))
+        self.btn_products.setText("📦 " + translator.translate('products.title'))
+        self.btn_parcels.setText("🚚 " + translator.translate('parcels.title'))
+        self.btn_finance.setText("💰 " + translator.translate('finance.title'))
         self.welcome_label.setText(translator.translate('dashboard.welcomeMessage', username=self.user.username))
         self.role_label.setText(translator.translate('dashboard.roleInfo', role=self.user.role))
         self.logout_btn.setText(translator.translate('dashboard.logoutButton'))
         self.setStyleSheet(get_main_style(lang == 'ar'))
-        self.update_layout_direction(lang)
-
-    def update_layout_direction(self, lang):
         if lang == 'ar':
             self.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
         else:

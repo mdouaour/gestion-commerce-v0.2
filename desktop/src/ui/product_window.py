@@ -1,9 +1,12 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QLabel, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QDialog, QFormLayout, QComboBox, QDoubleSpinBox, QSpinBox
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, 
+                             QLabel, QTableView, QHeaderView, QDialog, QFormLayout, 
+                             QComboBox, QDoubleSpinBox, QSpinBox)
+from PyQt6.QtCore import Qt, QSortFilterProxyModel
 from src.core.translator import translator
 from src.services.product_service import ProductService
 from src.models.database import SessionLocal
 from src.models.product import Category
+from src.ui.components.product_model import ProductTableModel
 
 class ProductDialog(QDialog):
     def __init__(self, parent=None, product=None):
@@ -13,15 +16,17 @@ class ProductDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle(translator.translate('products.add_new'))
-        self.setFixedWidth(400)
+        self.setFixedWidth(450)
         layout = QFormLayout(self)
+        layout.setSpacing(15)
 
         self.name_input = QLineEdit()
         self.sku_input = QLineEdit()
         self.price_input = QDoubleSpinBox()
-        self.price_input.setMaximum(1000000)
+        self.price_input.setMaximum(10000000)
+        self.price_input.setSuffix(" DA")
         self.stock_input = QSpinBox()
-        self.stock_input.setMaximum(10000)
+        self.stock_input.setMaximum(100000)
         
         self.cat_combo = QComboBox()
         db = SessionLocal()
@@ -32,12 +37,13 @@ class ProductDialog(QDialog):
 
         layout.addRow(translator.translate('products.name') + ':', self.name_input)
         layout.addRow(translator.translate('products.sku') + ':', self.sku_input)
+        layout.addRow(translator.translate('products.category') + ':', self.cat_combo)
         layout.addRow(translator.translate('products.price') + ':', self.price_input)
         layout.addRow(translator.translate('products.stock') + ':', self.stock_input)
-        layout.addRow(translator.translate('products.category') + ':', self.cat_combo)
 
         btns = QHBoxLayout()
         self.save_btn = QPushButton(translator.translate('products.save'))
+        self.save_btn.setObjectName('primary')
         self.save_btn.clicked.connect(self.accept)
         self.cancel_btn = QPushButton(translator.translate('products.cancel'))
         self.cancel_btn.clicked.connect(self.reject)
@@ -59,15 +65,18 @@ class ProductManagement(QWidget):
         super().__init__()
         self.user = user
         self.init_ui()
+        self.load_products()
 
     def init_ui(self):
         self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(20, 20, 20, 20)
 
-        # Header
+        # Header Area
         header_layout = QHBoxLayout()
         self.title_label = QLabel(translator.translate('products.title'))
         self.title_label.setObjectName('header')
-        self.add_btn = QPushButton(translator.translate('products.add_new'))
+        
+        self.add_btn = QPushButton("+ " + translator.translate('products.add_new'))
         self.add_btn.setObjectName('primary')
         self.add_btn.clicked.connect(self.open_add_dialog)
         
@@ -76,41 +85,40 @@ class ProductManagement(QWidget):
         header_layout.addWidget(self.add_btn)
         self.layout.addLayout(header_layout)
 
-        # Search
+        # Search Area
+        search_layout = QHBoxLayout()
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText(translator.translate('sales.product_search'))
-        self.search_input.textChanged.connect(self.load_products)
-        self.layout.addWidget(self.search_input)
+        self.search_input.setPlaceholderText("🔍 " + translator.translate('sales.product_search') + " (Name or SKU)")
+        self.search_input.setMinimumHeight(40)
+        self.search_input.textChanged.connect(self.filter_products)
+        search_layout.addWidget(self.search_input)
+        self.layout.addLayout(search_layout)
 
-        # Table
-        self.table = QTableWidget(0, 5)
-        self.table.setHorizontalHeaderLabels([
-            translator.translate('products.name'), 
-            translator.translate('products.sku'), 
-            translator.translate('products.category'), 
-            translator.translate('products.price'), 
-            translator.translate('products.stock')
-        ])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.layout.addWidget(self.table)
+        # Advanced Data View (ERP Pattern)
+        self.source_model = ProductTableModel()
+        self.proxy_model = QSortFilterProxyModel()
+        self.proxy_model.setSourceModel(self.source_model)
+        self.proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.proxy_model.setFilterKeyColumn(-1) # Filter all columns
 
-        self.load_products()
+        self.table_view = QTableView()
+        self.table_view.setModel(self.proxy_model)
+        self.table_view.setSortingEnabled(True)
+        self.table_view.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
+        self.table_view.setAlternatingRowColors(True)
+        self.table_view.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table_view.verticalHeader().setVisible(False)
+        
+        self.layout.addWidget(self.table_view)
 
     def load_products(self):
         db = SessionLocal()
-        search_text = self.search_input.text().lower()
         products = ProductService.get_all_products(db)
-        
-        filtered = [p for p in products if search_text in p.name.lower() or search_text in p.sku.lower()]
-        
-        self.table.setRowCount(len(filtered))
-        for i, p in enumerate(filtered):
-            self.table.setItem(i, 0, QTableWidgetItem(p.name))
-            self.table.setItem(i, 1, QTableWidgetItem(p.sku))
-            self.table.setItem(i, 2, QTableWidgetItem(p.category.name))
-            self.table.setItem(i, 3, QTableWidgetItem(f'{p.price:.2f}'))
-            self.table.setItem(i, 4, QTableWidgetItem(str(p.stock_quantity)))
+        self.source_model.update_data(products)
         db.close()
+
+    def filter_products(self, text):
+        self.proxy_model.setFilterFixedString(text)
 
     def open_add_dialog(self):
         dialog = ProductDialog(self)

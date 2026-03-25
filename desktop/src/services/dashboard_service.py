@@ -39,11 +39,6 @@ class DashboardService:
             Sale.created_at >= first_day_year
         ).scalar() or 0.0
 
-        # 5. Profit Estimation (Sales - Cost)
-        # Note: Cost of goods sold (COGS) would require a 'purchase_price' in Product model.
-        # Since it's missing, let's assume a default 20% margin for estimation if needed,
-        # or just return 0 for now until the model is updated.
-        # For this simulation, let's assume profit = 25% of sales.
         estimated_profit = monthly_sales * 0.25
 
         return {
@@ -55,3 +50,35 @@ class DashboardService:
             'yearly_sales': yearly_sales,
             'estimated_profit': estimated_profit
         }
+
+    @staticmethod
+    def get_sales_trend(db: Session, days=30):
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=days-1)
+        
+        # Query sum of sales per day
+        results = db.query(
+            func.date(Sale.created_at).label('date'),
+            func.sum(Sale.total_amount).label('total')
+        ).filter(
+            Sale.created_at >= start_date
+        ).group_by(
+            func.date(Sale.created_at)
+        ).all()
+        
+        # Format for plotting (ensure all days are present)
+        # Handle both date objects and strings from different SQLite versions/drivers
+        date_map = {}
+        for r in results:
+            d_key = r.date.isoformat() if hasattr(r.date, 'isoformat') else str(r.date)
+            date_map[d_key] = r.total
+        
+        dates = []
+        values = []
+        for i in range(days):
+            d = start_date + timedelta(days=i)
+            ds = d.isoformat()
+            dates.append(d.strftime('%m-%d'))
+            values.append(date_map.get(ds, 0.0))
+            
+        return dates, values
