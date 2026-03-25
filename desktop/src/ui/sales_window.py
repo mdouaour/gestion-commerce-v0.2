@@ -1,4 +1,6 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QLabel, QTableWidget, QTableWidgetItem, QHeaderView, QTabWidget, QMessageBox, QCompleter
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, 
+                             QLabel, QTableWidget, QTableWidgetItem, QHeaderView, 
+                             QTabWidget, QMessageBox, QCompleter, QAbstractItemView)
 from PyQt6.QtCore import Qt, pyqtSignal
 from src.core.translator import translator
 from src.services.sale_service import SaleService
@@ -12,26 +14,37 @@ class SaleTab(QWidget):
         super().__init__()
         self.user = user
         self.cart = [] # List of {'product': obj, 'quantity': int}
+        self.all_products = [] # Cached for search
         self.init_ui()
+        self.load_products()
 
     def init_ui(self):
         self.layout = QVBoxLayout(self)
 
-        # Top: Barcode and Search
+        # Top: Search and Info
         search_layout = QHBoxLayout()
-        self.barcode_input = QLineEdit()
-        self.barcode_input.setPlaceholderText(translator.translate('sales.barcode_label'))
-        self.barcode_input.returnPressed.connect(self.handle_barcode)
         
+        # IMPROVED SEARCH UX
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText(translator.translate('sales.product_search'))
+        self.search_input.setPlaceholderText("Search Product (Name or SKU)... [Ctrl+F]")
+        self.search_input.setMinimumHeight(40)
+        self.search_input.setStyleSheet("font-size: 16px; padding: 5px;")
+        self.search_input.textChanged.connect(self.handle_search)
         
-        search_layout.addWidget(QLabel(translator.translate('sales.barcode_label') + ':'))
-        search_layout.addWidget(self.barcode_input)
+        # Keyboard Navigation for search results
+        self.search_results = QTableWidget(0, 3)
+        self.search_results.setHorizontalHeaderLabels(["Name", "SKU", "Price"])
+        self.search_results.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.search_results.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers) # READ ONLY
+        self.search_results.setMinimumHeight(150)
+        self.search_results.hide() # Hidden until typing
+        self.search_results.itemDoubleClicked.connect(self.select_search_result)
+        
         search_layout.addWidget(self.search_input)
         self.layout.addLayout(search_layout)
+        self.layout.addWidget(self.search_results)
 
-        # Table
+        # Cart Table
         self.table = QTableWidget(0, 4)
         self.table.setHorizontalHeaderLabels([
             translator.translate('sales.product_search'), 
@@ -40,15 +53,23 @@ class SaleTab(QWidget):
             translator.translate('sales.total')
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        
+        # CRITICAL: DATA INTEGRITY - NO MANUAL EDITS
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setStyleSheet("font-size: 14px;")
+        
         self.layout.addWidget(self.table)
 
         # Bottom: Total and Checkout
         bottom_layout = QHBoxLayout()
         self.total_label = QLabel(f"{translator.translate('sales.total')}: 0.00 DZD")
-        self.total_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
+        self.total_label.setStyleSheet("font-size: 24px; font-weight: bold; color: #2c3e50;")
         
-        self.checkout_btn = QPushButton(translator.translate('sales.checkout'))
+        self.checkout_btn = QPushButton(translator.translate('sales.checkout') + " [F5]")
         self.checkout_btn.setObjectName('primary')
+        self.checkout_btn.setMinimumHeight(60)
+        self.checkout_btn.setStyleSheet("font-size: 18px; font-weight: bold; padding: 10px 40px;")
         self.checkout_btn.clicked.connect(self.handle_checkout)
         
         bottom_layout.addWidget(self.total_label)
@@ -56,23 +77,56 @@ class SaleTab(QWidget):
         bottom_layout.addWidget(self.checkout_btn)
         self.layout.addLayout(bottom_layout)
 
-    def handle_barcode(self):
-        barcode = self.barcode_input.text().strip()
-        if not barcode:
+    def load_products(self):
+        db = SessionLocal()
+        try:
+            from src.models.product import Product
+            self.all_products = db.query(Product).all()
+        finally:
+            db.close()
+
+    def handle_search(self, text):
+        if not text:
+            self.search_results.hide()
             return
             
-        db = SessionLocal()
-        product = ProductService.get_product_by_sku(db, barcode)
-        db.close()
-
-        if product:
-            self.add_to_cart(product)
-            self.barcode_input.clear()
+        results = []
+        for p in self.all_products:
+            if text.lower() in p.name.lower() or text.lower() in p.sku.lower():
+                results.append(p)
+        
+        if results:
+            self.search_results.setRowCount(len(results))
+            for i, p in enumerate(results):
+                name_item = QTableWidgetItem(p.name)
+                name_item.setData(Qt.ItemDataRole.UserRole, p) # Store product object
+                self.search_results.setItem(i, 0, name_item)
+                self.search_results.setItem(i, 1, QTableWidgetItem(p.sku))
+                self.search_results.setItem(i, 2, QTableWidgetItem(f"{p.price:.2f}"))
+            self.search_results.show()
         else:
-            QMessageBox.warning(self, "Error", translator.translate('errors.PRODUCT_NOT_FOUND'))
+            self.search_results.hide()
+
+    def select_search_result(self, item):
+        row = item.row()
+        product = self.search_results.item(row, 0).data(Qt.ItemDataRole.UserRole)
+        self.add_to_cart(product)
+        self.search_input.clear()
+        self.search_results.hide()
+
+    def keyPressEvent(self, event):
+        # Keyboard Navigation for Search Results
+        if self.search_results.isVisible():
+            if event.key() == Qt.Key.Key_Down:
+                self.search_results.setFocus()
+                self.search_results.selectRow(0)
+            elif event.key() == Qt.Key.Key_Enter or event.key() == Qt.Key.Key_Return:
+                if self.search_results.currentRow() >= 0:
+                    self.select_search_result(self.search_results.item(self.search_results.currentRow(), 0))
+                return
+        super().keyPressEvent(event)
 
     def add_to_cart(self, product):
-        # Check if already in cart
         for item in self.cart:
             if item['product'].id == product.id:
                 item['quantity'] += 1
@@ -91,10 +145,19 @@ class SaleTab(QWidget):
             subtotal = p.price * q
             total += subtotal
             
-            self.table.setItem(i, 0, QTableWidgetItem(p.name))
-            self.table.setItem(i, 1, QTableWidgetItem(str(q)))
-            self.table.setItem(i, 2, QTableWidgetItem(f"{p.price:.2f}"))
-            self.table.setItem(i, 3, QTableWidgetItem(f"{subtotal:.2f}"))
+            # Use QTableWidgetItem properly
+            name_item = QTableWidgetItem(p.name)
+            qty_item = QTableWidgetItem(str(q))
+            price_item = QTableWidgetItem(f"{p.price:.2f}")
+            total_item = QTableWidgetItem(f"{subtotal:.2f}")
+            
+            # Center text for quantity
+            qty_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            
+            self.table.setItem(i, 0, name_item)
+            self.table.setItem(i, 1, qty_item)
+            self.table.setItem(i, 2, price_item)
+            self.table.setItem(i, 3, total_item)
             
         self.total_label.setText(f"{translator.translate('sales.total')}: {total:.2f} DZD")
 

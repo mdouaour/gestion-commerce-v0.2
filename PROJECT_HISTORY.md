@@ -1,5 +1,24 @@
 
 ---
+### UI/UX Improvements Phase
+
+**Date:** 2026-03-25
+
+- **🇬🇧 English:** Transformed the application into a professional, keyboard-first POS system. 
+    - **Login:** Replaced manual username typing with a selection dropdown. Added **Enter** key support and auto-focus on the password field for a frictionless start.
+    - **Data Integrity:** Converted all "Sold Items" and Cart tables to **Read-Only** to prevent accidental or malicious data modification.
+    - **Sales Flow:** Implemented **Real-Time Search** in the sales terminal. Cashiers can now type and see results instantly, navigating with arrow keys and selecting with Enter.
+    - **UX:** Increased button and input sizes for high-traffic usage. 
+- **🇫🇷 French:** Transformation de l'application en un système POS professionnel axé sur le clavier.
+    - **Connexion:** Remplacement de la saisie manuelle du nom d'utilisateur par une liste déroulante. Ajout du support de la touche **Entrée** et de l'auto-focus sur le champ mot de passe.
+    - **Intégrité des données:** Passage de tous les tableaux de vente et du panier en mode **Lecture seule** pour éviter les modifications accidentelles.
+    - **Flux de vente:** Implémentation de la **Recherche en temps réel**. Les caissiers peuvent désormais voir les résultats instantanément, naviguer avec les flèches et sélectionner avec Entrée.
+- **🇩🇿 Arabic:** تحويل التطبيق إلى نظام نقطة بيع (POS) احترافي يعتمد على لوحة المفاتيح.
+    - **تسجيل الدخول:** استبدال الكتابة اليدوية لاسم المستخدم بقائمة اختيار. إضافة دعم مفتاح **Enter** والتركيز التلقائي على حقل كلمة المرور.
+    - **سلامة البيانات:** تحويل جميع جداول المبيعات وسلة التسوق إلى وضع **القراءة فقط** لمنع التعديل غير المصرح به.
+    - **تدفق المبيعات:** تنفيذ **البحث في الوقت الفعلي**. يمكن للصرافين الآن رؤية النتائج فوراً، والتنقل باستخدام الأسهم والاختيار بمفتاح Enter.
+
+---
 ### Day Resume Audit
 
 **Date:** 2026-03-25
