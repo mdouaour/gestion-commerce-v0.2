@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from src.models.product import Product, Category, SyncQueue
 from src.models.user import AuditLog
 import json
@@ -6,7 +6,8 @@ import json
 class ProductService:
     @staticmethod
     def get_all_products(db: Session):
-        return db.query(Product).all()
+        # Eager load category to avoid DetachedInstanceError in GUI
+        return db.query(Product).options(joinedload(Product.category)).all()
 
     @staticmethod
     def get_product_by_sku(db: Session, sku: str):

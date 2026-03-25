@@ -1,10 +1,14 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from src.models.sale_parcel import Parcel, ParcelItem, ParcelStatus
 from src.models.product import Product
 from src.models.user import AuditLog
 import json
 
 class ParcelService:
+    @staticmethod
+    def get_all_parcels(db: Session):
+        return db.query(Parcel).options(joinedload(Parcel.user)).all()
+
     @staticmethod
     def create_parcel(db: Session, client_name: str, client_phone: str, client_address: str, items_data: list, shipping_fee: float, user_id: int):
         try:

@@ -75,7 +75,7 @@ class ParcelManagement(QWidget):
 
     def load_parcels(self):
         db = SessionLocal()
-        parcels = db.query(Parcel).all()
+        parcels = ParcelService.get_all_parcels(db)
         self.source_model.update_data(parcels)
         db.close()
 
