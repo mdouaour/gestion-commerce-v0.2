@@ -1,11 +1,52 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, 
                              QLabel, QTableWidget, QTableWidgetItem, QHeaderView, 
-                             QTabWidget, QMessageBox, QAbstractItemView, QSpinBox)
+                             QTabWidget, QMessageBox, QAbstractItemView, QSpinBox,
+                             QDialog, QFormLayout, QDoubleSpinBox)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QShortcut, QKeySequence
 from src.core.translator import translator
 from src.services.sale_service import SaleService
+from src.services.parcel_service import ParcelService
 from src.models.database import SessionLocal
+
+class ParcelDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Parcel Details")
+        self.setFixedWidth(400)
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QFormLayout(self)
+        self.name_input = QLineEdit()
+        self.phone_input = QLineEdit()
+        self.address_input = QLineEdit()
+        self.shipping_input = QDoubleSpinBox()
+        self.shipping_input.setRange(0, 10000)
+        self.shipping_input.setValue(0)
+        
+        layout.addRow("Client Name:", self.name_input)
+        layout.addRow("Phone:", self.phone_input)
+        layout.addRow("Address:", self.address_input)
+        layout.addRow("Shipping Fee:", self.shipping_input)
+        
+        btns = QHBoxLayout()
+        save = QPushButton("Create Parcel")
+        save.setObjectName("primary")
+        save.clicked.connect(self.accept)
+        cancel = QPushButton("Cancel")
+        cancel.clicked.connect(self.reject)
+        btns.addWidget(save)
+        btns.addWidget(cancel)
+        layout.addRow(btns)
+
+    def get_data(self):
+        return {
+            'client_name': self.name_input.text(),
+            'client_phone': self.phone_input.text(),
+            'client_address': self.address_input.text(),
+            'shipping_fee': self.shipping_input.value()
+        }
 
 class SaleTab(QWidget):
     sale_completed = pyqtSignal()
@@ -59,16 +100,18 @@ class SaleTab(QWidget):
         self.layout.addWidget(self.search_results)
 
         # --- MIDDLE SECTION: CART ---
-        self.table = QTableWidget(0, 4)
+        self.table = QTableWidget(0, 5) # Added 1 column for Action
         self.table.setHorizontalHeaderLabels([
             translator.translate('products.name'), 
             translator.translate('sales.quantity'), 
             translator.translate('products.price'), 
-            translator.translate('sales.total')
+            translator.translate('sales.total'),
+            "Action"
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.DoubleClicked | QAbstractItemView.EditTrigger.EditKeyPressed)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.itemChanged.connect(self.handle_item_changed)
         self.table.setStyleSheet("font-size: 15px;")
         self.layout.addWidget(self.table)
 
@@ -86,9 +129,17 @@ class SaleTab(QWidget):
         self.checkout_btn.setStyleSheet("font-size: 20px;")
         self.checkout_btn.clicked.connect(self.handle_checkout)
         
+        self.parcel_btn = QPushButton("🚚 " + translator.translate('parcels.title'))
+        self.parcel_btn.setObjectName('secondary')
+        self.parcel_btn.setMinimumHeight(70)
+        self.parcel_btn.setMinimumWidth(200)
+        self.parcel_btn.setStyleSheet("font-size: 18px;")
+        self.parcel_btn.clicked.connect(self.handle_parcel_checkout)
+        
         bottom_layout.addWidget(QLabel(f"{translator.translate('sales.total')}:"))
         bottom_layout.addWidget(self.total_label)
         bottom_layout.addStretch()
+        bottom_layout.addWidget(self.parcel_btn)
         bottom_layout.addWidget(self.checkout_btn)
         self.layout.addLayout(bottom_layout)
 
@@ -111,6 +162,15 @@ class SaleTab(QWidget):
 
     def handle_search(self, text):
         if not text or len(text) < 1:
+            self.search_results.hide()
+            return
+
+        # Optimization for Barcode Scanner: If exact SKU match, add immediately
+        matched_product = next((p for p in self.all_products if p.sku == text), None)
+        if matched_product:
+            self.add_to_cart(matched_product, self.qty_input.value())
+            self.search_input.clear()
+            self.qty_input.setValue(1)
             self.search_results.hide()
             return
             
@@ -177,6 +237,7 @@ class SaleTab(QWidget):
         self.update_table()
 
     def update_table(self):
+        self.table.blockSignals(True)
         self.table.setRowCount(len(self.cart))
         total = 0
         for i, item in enumerate(self.cart):
@@ -185,16 +246,54 @@ class SaleTab(QWidget):
             subtotal = p.price * q
             total += subtotal
             
-            self.table.setItem(i, 0, QTableWidgetItem(p.name))
+            # Name (Read-only)
+            name_item = QTableWidgetItem(p.name)
+            name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            self.table.setItem(i, 0, name_item)
             
+            # Qty (Editable)
             qty_item = QTableWidgetItem(str(q))
             qty_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(i, 1, qty_item)
             
-            self.table.setItem(i, 2, QTableWidgetItem(f"{p.price:,.2f}"))
-            self.table.setItem(i, 3, QTableWidgetItem(f"{subtotal:,.2f}"))
+            # Price (Read-only)
+            price_item = QTableWidgetItem(f"{p.price:,.2f}")
+            price_item.setFlags(price_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            self.table.setItem(i, 2, price_item)
+            
+            # Total (Read-only)
+            total_item = QTableWidgetItem(f"{subtotal:,.2f}")
+            total_item.setFlags(total_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            self.table.setItem(i, 3, total_item)
+
+            # Action (Remove Button)
+            remove_btn = QPushButton("✕")
+            remove_btn.setObjectName("danger")
+            remove_btn.setFixedWidth(40)
+            remove_btn.clicked.connect(lambda checked, row=i: self.remove_item(row))
+            self.table.setCellWidget(i, 4, remove_btn)
             
         self.total_label.setText(f"{total:,.2f} DZD")
+        self.table.blockSignals(False)
+
+    def handle_item_changed(self, item):
+        if item.column() == 1: # Quantity column
+            row = item.row()
+            try:
+                new_qty = int(item.text())
+                if new_qty <= 0:
+                    self.remove_item(row)
+                else:
+                    self.cart[row]['quantity'] = new_qty
+                    self.update_table()
+            except ValueError:
+                # Revert if invalid input
+                self.update_table()
+
+    def remove_item(self, row):
+        if 0 <= row < len(self.cart):
+            self.cart.pop(row)
+            self.update_table()
 
     def handle_checkout(self):
         if not self.cart:
@@ -222,6 +321,47 @@ class SaleTab(QWidget):
             self.search_input.setFocus()
         else:
             QMessageBox.critical(self, "Error", translator.translate(f'errors.{error}'))
+
+    def handle_parcel_checkout(self):
+        if not self.cart:
+            QMessageBox.information(self, "Info", translator.translate('sales.empty_cart'))
+            return
+            
+        dialog = ParcelDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            data = dialog.get_data()
+            if not data['client_name'] or not data['client_phone']:
+                QMessageBox.warning(self, "Error", "Client name and phone are required for parcels.")
+                return
+
+            items_data = []
+            for item in self.cart:
+                items_data.append({
+                    'product_id': item['product'].id,
+                    'quantity': item['quantity'],
+                    'price_at_sale': item['product'].price
+                })
+                
+            db = SessionLocal()
+            parcel, error = ParcelService.create_parcel(
+                db, 
+                data['client_name'],
+                data['client_phone'],
+                data['client_address'],
+                items_data,
+                data['shipping_fee'],
+                self.user.id
+            )
+            db.close()
+            
+            if parcel:
+                QMessageBox.information(self, "Success", "Parcel created successfully!")
+                self.cart = []
+                self.update_table()
+                self.sale_completed.emit()
+                self.search_input.setFocus()
+            else:
+                QMessageBox.critical(self, "Error", f"Parcel Error: {error}")
 
 class SalesTerminal(QWidget):
     def __init__(self, user):

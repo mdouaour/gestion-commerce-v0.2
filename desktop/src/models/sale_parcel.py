@@ -17,6 +17,7 @@ class Sale(Base):
     total_amount = Column(Float, default=0.0)
     cash_transaction_id = Column(Integer, ForeignKey('cash_transactions.id'), nullable=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    is_cancelled = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
 
     items = relationship('SaleItem', back_populates='sale', cascade='all, delete-orphan')

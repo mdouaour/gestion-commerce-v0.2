@@ -68,3 +68,56 @@ class SaleService:
         except Exception as e:
             db.rollback()
             return None, f'SALE_ERROR: {str(e)}'
+
+    @staticmethod
+    def cancel_sale(db: Session, sale_id: int, user_id: int):
+        try:
+            sale = db.query(Sale).filter(Sale.id == sale_id).with_for_update().first()
+            if not sale:
+                return False, 'SALE_NOT_FOUND'
+            
+            if sale.is_cancelled:
+                return False, 'SALE_ALREADY_CANCELLED'
+
+            register = db.query(CashRegister).first()
+            if not register or not register.is_open:
+                return False, 'CASH_REGISTER_CLOSED'
+
+            # 1. Restore stock
+            for item in sale.items:
+                product = db.query(Product).filter(Product.id == item.product_id).with_for_update().first()
+                if product:
+                    product.stock_quantity += item.quantity
+                    product.version += 1
+
+            # 2. Revert cash balance
+            register.current_balance -= sale.total_amount
+            
+            # 3. Create reversing transaction
+            cash_tx = CashTransaction(
+                register_id=register.id,
+                amount=-sale.total_amount,
+                type=TransactionType.ADJUSTMENT,
+                reason=f'Reversal for Sale #{sale.id}',
+                user_id=user_id
+            )
+            db.add(cash_tx)
+
+            # 4. Mark as cancelled
+            sale.is_cancelled = True
+            
+            # 5. Audit Log
+            log = AuditLog(
+                user_id=user_id, 
+                action='sale_cancelled', 
+                table_name='sales', 
+                row_id=sale.id, 
+                details=f'Reverted amount: {sale.total_amount}'
+            )
+            db.add(log)
+            
+            db.commit()
+            return True, None
+        except Exception as e:
+            db.rollback()
+            return False, f'CANCEL_ERROR: {str(e)}'

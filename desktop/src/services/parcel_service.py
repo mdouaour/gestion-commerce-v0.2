@@ -70,13 +70,45 @@ class ParcelService:
 
     @staticmethod
     def collect_parcel_money(db: Session, parcel_id: int, collected_amount: float, user_id: int):
+        from src.models.user import User, UserRole
+        from src.models.finance import CashRegister, CashTransaction, TransactionType
+
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user or user.role != UserRole.ADMIN:
+            return None, 'UNAUTHORIZED_ACTION'
+
         parcel = db.query(Parcel).filter(Parcel.id == parcel_id).first()
         if not parcel:
             return None, 'PARCEL_NOT_FOUND'
             
+        if parcel.is_money_collected:
+            return None, 'ALREADY_COLLECTED'
+
+        register = db.query(CashRegister).first()
+        if not register or not register.is_open:
+            return None, 'CASH_REGISTER_CLOSED'
+
+        # 1. Mark as collected
         parcel.is_money_collected = True
         parcel.collected_amount = collected_amount
+        parcel.status = ParcelStatus.DELIVERED # Automatically mark as delivered if not already?
+        
+        # 2. Update Cash Register
+        register.current_balance += collected_amount
+        
+        # 3. Create Cash Transaction
+        cash_tx = CashTransaction(
+            register_id=register.id,
+            amount=collected_amount,
+            type=TransactionType.SALE, # Or a specific type for parcels
+            reason=f'Parcel collection #{parcel.id} - Client: {parcel.client_name}',
+            user_id=user_id
+        )
+        db.add(cash_tx)
+
+        # 4. Audit Log
         log = AuditLog(user_id=user_id, action='parcel_money_collected', table_name='parcels', row_id=parcel.id, details=f'Collected: {collected_amount}')
         db.add(log)
+        
         db.commit()
         return parcel, None

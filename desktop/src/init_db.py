@@ -9,6 +9,7 @@ from src.models.user import User, UserRole
 from src.models.product import Category, Product, SyncQueue
 from src.models.finance import CashRegister, CashTransaction, Withdrawal
 from src.models.sale_parcel import Sale, SaleItem, Parcel, ParcelItem
+from src.models.purchase_order import PurchaseOrder, PurchaseOrderItem
 from src.models.user import AuditLog
 import os
 from argon2 import PasswordHasher
