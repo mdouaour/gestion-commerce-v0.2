@@ -3,6 +3,7 @@ from src.models.database import SessionLocal, Base, engine
 from src.models.product import Product, Category
 from src.models.user import User, UserRole
 from src.models.finance import CashRegister
+from src.models.sale_parcel import SaleStatus
 from src.services.sale_service import SaleService
 from src.services.product_service import ProductService
 import os
@@ -69,3 +70,41 @@ def test_sale_flow_integration(db):
     
     assert sale_fail is None
     assert error_fail == 'OPTIMISTIC_LOCK_CONFLICT'
+
+def test_refund_sale_flow(db):
+    # Setup: Create a sale to refund
+    user = db.query(User).filter(User.username == 'test_user').one()
+    cat = db.query(Category).first()
+    prod = db.query(Product).first()
+    
+    # 1. Capture initial state
+    db.refresh(prod)
+    initial_stock = prod.stock_quantity
+    register = db.query(CashRegister).first()
+    initial_balance = register.current_balance
+    
+    # 2. Perform a sale
+    items_data = [{'product_id': prod.id, 'quantity': 1, 'price_at_sale': prod.price, 'version': prod.version}]
+    sale, error = SaleService.create_sale(db, user_id=user.id, items_data=items_data)
+    assert error is None
+    
+    # Verify stock decreased
+    db.refresh(prod)
+    assert prod.stock_quantity == initial_stock - 1
+    
+    # 3. Perform a refund (using same user as admin for simplicity)
+    success, error = SaleService.refund_sale(db, sale.id, admin_id=user.id, cashier_id=user.id)
+    assert success is True
+    assert error is None
+    
+    # 4. Verify stock restored
+    db.refresh(prod)
+    assert prod.stock_quantity == initial_stock
+    
+    # 5. Verify balance restored
+    db.refresh(register)
+    assert register.current_balance == initial_balance
+    
+    # 6. Verify status
+    db.refresh(sale)
+    assert sale.status == SaleStatus.REFUNDED

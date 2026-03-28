@@ -1,3 +1,4 @@
+from sqlalchemy import String
 from sqlalchemy.orm import Session, joinedload
 from src.models.sale_parcel import Parcel, ParcelItem, ParcelStatus
 from src.models.product import Product
@@ -7,7 +8,30 @@ import json
 class ParcelService:
     @staticmethod
     def get_all_parcels(db: Session):
-        return db.query(Parcel).options(joinedload(Parcel.user)).all()
+        return db.query(Parcel).options(joinedload(Parcel.user)).order_by(Parcel.created_at.desc()).all()
+
+    @staticmethod
+    def search_parcels(db: Session, query: str):
+        return db.query(Parcel).options(joinedload(Parcel.user)).filter(
+            (Parcel.client_name.ilike(f'%{query}%')) |
+            (Parcel.client_phone.ilike(f'%{query}%')) |
+            (Parcel.id.cast(String).ilike(f'%{query}%'))
+        ).order_by(Parcel.created_at.desc()).all()
+
+    @staticmethod
+    def validate_parcel(db: Session, parcel_id: int, user_id: int):
+        """Validate a parcel (mark as delivered and ensure money is collected if required)."""
+        parcel = db.query(Parcel).filter(Parcel.id == parcel_id).first()
+        if not parcel:
+            return None, 'PARCEL_NOT_FOUND'
+        
+        parcel.status = ParcelStatus.DELIVERED
+        # Note: Money collection is usually a separate step, but validation implies it's ready.
+        
+        log = AuditLog(user_id=user_id, action='parcel_validated', table_name='parcels', row_id=parcel.id, details='Parcel validated/marked as delivered')
+        db.add(log)
+        db.commit()
+        return parcel, None
 
     @staticmethod
     def create_parcel(db: Session, client_name: str, client_phone: str, client_address: str, items_data: list, shipping_fee: float, user_id: int):

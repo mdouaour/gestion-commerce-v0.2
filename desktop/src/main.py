@@ -9,6 +9,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.core.translator import translator
 from src.ui.login_window import LoginWindow
 from src.ui.dashboard import DashboardWindow
+from src.ui.cashier_window import CashierWindow
+from src.models.user import UserRole
 from dotenv import load_dotenv
 
 class POSApplication:
@@ -20,17 +22,22 @@ class POSApplication:
         if self.current_window:
              self.current_window.close()
         self.login_win = LoginWindow()
-        self.login_win.login_success.connect(self.show_dashboard)
+        self.login_win.login_success.connect(self.show_main_ui)
         self.login_win.show()
         self.current_window = self.login_win
 
-    def show_dashboard(self, user):
+    def show_main_ui(self, user):
         if self.current_window:
              self.current_window.close()
-        self.dashboard_win = DashboardWindow(user)
-        self.dashboard_win.logout_requested.connect(self.show_login)
-        self.dashboard_win.show()
-        self.current_window = self.dashboard_win
+        
+        if user.role == UserRole.ADMIN:
+            self.main_win = DashboardWindow(user)
+        else:
+            self.main_win = CashierWindow(user)
+            
+        self.main_win.logout_requested.connect(self.show_login)
+        self.main_win.show()
+        self.current_window = self.main_win
 
     def run(self):
         self.show_login()

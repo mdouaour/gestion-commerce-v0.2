@@ -10,6 +10,10 @@ class ParcelStatus(str, enum.Enum):
     RETURNED = 'returned'
     EXCHANGED = 'exchanged'
 
+class SaleStatus(str, enum.Enum):
+    COMPLETED = 'completed'
+    REFUNDED = 'refunded'
+
 class Sale(Base):
     __tablename__ = 'sales'
 
@@ -17,6 +21,7 @@ class Sale(Base):
     total_amount = Column(Float, default=0.0)
     cash_transaction_id = Column(Integer, ForeignKey('cash_transactions.id'), nullable=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    status = Column(String, default=SaleStatus.COMPLETED)
     is_cancelled = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
 
