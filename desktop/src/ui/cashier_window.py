@@ -434,15 +434,18 @@ class CashierWindow(QMainWindow):
         
         db = SessionLocal()
         sale, error = SaleService.create_sale(db, self.user.id, items_data)
-        db.close()
         
         if sale:
-            self.status_msg.setText(f"Last Sale: #{sale.id} | Total: {sale.total_amount:,.2f} DZD")
+            sale_id = sale.id
+            total_amount = sale.total_amount
+            db.close()
+            self.status_msg.setText(f"Last Sale: #{sale_id} | Total: {total_amount:,.2f} DZD")
             self.cart = []
             self.update_cart_display()
             self.load_products() # Refresh stock
             self.search_input.setFocus()
         else:
+            db.close()
             QMessageBox.critical(self, "Checkout Error", f"Error: {error}")
 
     def handle_parcel_checkout(self):
@@ -454,13 +457,16 @@ class CashierWindow(QMainWindow):
             items_data = [{'product_id': i['product'].id, 'quantity': i['quantity'], 'price_at_sale': i['product'].price} for i in self.cart]
             db = SessionLocal()
             parcel, error = ParcelService.create_parcel(db, data['client_name'], data['client_phone'], data['client_address'], items_data, data['shipping_fee'], self.user.id)
-            db.close()
+            
             if parcel:
-                QMessageBox.information(self, "Success", f"Parcel #{parcel.id} created!")
+                parcel_id = parcel.id
+                db.close()
+                QMessageBox.information(self, "Success", f"Parcel #{parcel_id} created!")
                 self.cart = []
                 self.update_cart_display()
                 self.parcel_panel.load_data()
             else:
+                db.close()
                 QMessageBox.critical(self, "Error", f"Error: {error}")
 
     def handle_refund(self):
